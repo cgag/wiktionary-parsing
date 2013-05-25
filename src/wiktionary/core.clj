@@ -2,6 +2,7 @@
   (:require [clojure.string :as s]
             [clojure.set :as set]
             [clojure.walk :as w]
+            [clojure.core.reducers :as r]
             [flatland.ordered.set :as oset]
             [flatland.ordered.map :as omap]
             [wiktionary.templates :as t]))
@@ -11,21 +12,23 @@
 
 (defn fmap [f m]
   (into {} (for [[k v] m] [k (f v)]))) 
+
 (def downcase-vals (partial fmap s/lower-case))
 
 (def filepath "spanish-definitions.tsv")
-(def lines (line-seq (clojure.java.io/reader filepath)))
-(def line-vecs (map #(s/split % #"\t") lines))
+                                        ;(def lines (line-seq (clojure.java.io/reader filepath)))
+(defonce lines (s/split (slurp filepath) #"\n"))
+(def line-vecs (r/map #(s/split % #"\t") lines))
 
 (defn line-vecs->entries [line-vecs]
   (->> line-vecs
-       (map #(zipmap [:lang :word :pos :def] %))
+       (r/map #(zipmap [:lang :word :pos :def] %))
        ;; drop leading # in front of definitions
-       (map #(update-in % [:def] (fn [def]
-                                   (.substring def 1))))
-       (map downcase-vals)))
+       (r/map #(update-in % [:def] (fn [def]
+                                     (.substring def 1))))
+       (r/map downcase-vals)))
 
-(defonce entries (line-vecs->entries line-vecs))
+(defonce entries (r/fold (r/monoid into vector) conj (line-vecs->entries line-vecs)))
 (defonce sample  (filter (fn [_] (= (rand-int 1000) 5)) entries))
 
 (defn oindex
@@ -66,8 +69,8 @@
 
 (def all-adjectives (by-pos "adjective"))
 
-(def template-regex #"\{\{.*?\}\}" )
-(def bracket-regex  #"\[\[(.*?)\]\]" )
+(def template-regex #"\{\{.*?\}\}")
+(def bracket-regex  #"\[\[(.*?)\]\]")
 
 (defn drop-surrounding [s n]
   (.substring s n (- (count s) n)))
