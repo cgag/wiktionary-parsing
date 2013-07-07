@@ -27,15 +27,14 @@
     (is (= "verb"    pos))))
 
 (deftest template-tests
-  (let [t-value (partial value p/template)
-        simple (t-value simple-template)
-        simple-spaces (t-value simple-template-spaces)
-        end-pipe (t-value end-with-pipe)
-        mult-unamed (t-value multiple-unnamed-params)
-        named-param (t-value named-param)
-        named-whitespace (t-value named-with-whitespace)
-        named-params (t-value named-params)
-        mixed-params (t-value mixed-params)]
+  (let [simple        (value p/template simple-template)
+        simple-spaces (value p/template simple-template-spaces)
+        end-pipe      (value p/template end-with-pipe)
+        mult-unamed   (value p/template multiple-unnamed-params)
+        named-param   (value p/template named-param)
+        named-whitespace (value p/template named-with-whitespace)
+        named-params (value p/template named-params)
+        mixed-params (value p/template mixed-params)]
     (is (= simple {"0" "hello"}))
     (is (= simple-spaces {"0" "es-verb form of"}))
     (is (= end-pipe {"0" "hello" "1" ""}))
@@ -50,5 +49,17 @@
 
 ; Spanish adjustable  Adjective # [[#English|adjustable]], [[regulable]]
 (deftest definition-test
-  (let [parsed (value p/definition "hello [[test]] world")]
-    (is (= parsed "hello test world"))))
+  (testing "plain text definitions"
+    (is (= [{:word "hello"} {:word "2"} {:word "world"}]
+           (value p/definition "hello 2 world"))))
+  (testing "link definitions"
+    (testing "plain links"
+      (is (= [{:link {:text "a link"}}]
+             (value p/definition "[[a link]]"))))
+    (testing "language specific links"
+      (is (= [{:link {:text "whatever" :language "english"}}] 
+             (value p/definition "[[#English|whatever]]")))))
+  (testing "mixed link and text definitions"))
+
+;; Just here for convient sending to repl w/ cpp
+(comment (run-tests))

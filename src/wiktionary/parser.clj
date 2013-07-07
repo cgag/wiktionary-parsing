@@ -3,68 +3,95 @@
             [blancas.kern.lexer.basic :refer :all]
             [clojure.string :as s]))
 
-(def double-braces   (comp braces braces))
-(def double-brackets (comp brackets brackets))
+(def double-braces   "{{}}"   (comp braces braces))
+(def double-brackets "[[]]" (comp brackets brackets))
 
-(defn remove-blanks [m]
+(defn remove-blanks 
+  "Remove map-entries who's values are blank strings"
+  [m]
   (into {}
         (for [[k v] m]
           (when-not (s/blank? (str v))
             [k v]))))
 
-(def param (bind [fld (field "|}")
-                  _ (modify-state #(update-in % [:i] inc))
-                  u get-state]
-               (return {(str (:i u)) (s/trimr fld)})))
 
-(def named-param (bind  [name (field " =}|")
-                         _    (sym \=)
-                         value    (field "|}")]
-                     (return {name (s/trimr value)})))
 
-(def id->lower (bind [i identifier]
-                   (return (s/lower-case i))))
 
-;; TODO: make a parser for the text, which can parse either
-;; plain-text, potentially in square brakets or not, or templates, or
-;; a mixture of the three
+(def id->lower 
+  "parses an identifier and converts it to lowercase"
+  (bind [i identifier]
+        (return (s/lower-case i))))
+
 
 (def basic-info
+  "Parses all the information before the definition,
+  the language, the word itself, and the part of speech."
   (bind [lang id->lower
-         w    id->lower
+         word id->lower
          pos  id->lower]
-      (return {:lang lang :word w :pos pos})))
+        (return {:lang lang :word word :pos pos})))
 
-(def template-inner
-  (bind [inside (sep-by (sym \|)
-                        (<|> (<:> named-param) param))]
-      (return inside)))
 
+(declare template-inner param named-param)
 (def template
+  "Parse a wiktionary (wikimedia) template.
+  {{name-of-template | parmam | namedparam=whatever| ... }}"
   (bind [_ (put-state {:i -1})
          t (double-braces template-inner)]
-      (return (apply merge t))))
+        (return (apply merge t))))
 
-;; TODO: doesn't work at all
-(def link (double-brackets (field "]|")))
-;(run  (double-brackets (field "|")) "[[#English|adjustable]]")
+(def template-inner
+  "parse the internals "
+  (sep-by (sym \|)
+          (<|> named-param param)))
 
-;; TODO: handle this
+(def param
+  "Parse a template param (parms are separated by |'s)
+  They're given names that are just numbers according to which unamed 
+  param they are in the template"
+  (bind [fld (field "|}")
+         _ (modify-state #(update-in % [:i] inc))
+         u get-state]
+        (return {(str (:i u)) (s/trimr fld)})))
+
+
+(def named-param
+  "Parse a named param from a template e.g. butts=dongs"
+  (<:> (bind  [name (field " =}|")
+               _    (sym \=)
+               value    (field "|}")]
+             (return {name (s/trimr value)}))))
+ 
+
+;; TODO: must be a better way than this if and dropping the \#
+(def link 
+  "Parse a link within a defintion of either of the forms:
+  [[linktext]]
+  [[#Language|linktext]]"
+  (bind [link-fields (double-brackets (sep-by (sym \|) (field "|]")))]
+        (if (= (count link-fields) 2)
+          (let [[lang text] link-fields]
+            (return {:language (->> lang 
+                                    (drop 1) 
+                                    (apply str) 
+                                    s/lower-case) 
+                     :text text}))
+          (return {:text (first link-fields)}))))
+
+
 (def definition
-  ;; [[stuff like this (links?)]] plain text
-  ;; [[#Lang|word]] -> translations?
-  (bind [def-parts (many (<|> link 
-                              identifier))]
-      (return (s/join " " def-parts))))
+  "Parse the definition of a word which can contain a mixture of words and links"
+  (many (<|> (bind [l link]
+                   (return {:link l}))
+             (bind [word (<+> (lexeme (many (none-of* " \n\t\r"))))]
+                   (return {:word word})))))
 
 
 (def line (many-till any-char (<|> new-line eof)))
 
 (def entry
+  "Parse one of the Spanish definition entries"
   (bind [info basic-info
          _ (sym \#)
-         def  (many (<|> template definition))]
-      (return (assoc info :def def))))
-
-;; TODO: Handle double braces for things beyond [[link]], such as
-;; [[#English whatever]]
+         defnition  (many (<|> template definition))]
+        (return (assoc info :def definition))))

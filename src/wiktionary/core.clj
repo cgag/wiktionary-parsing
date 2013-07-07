@@ -69,61 +69,7 @@
 
 (def all-adjectives (by-pos "adjective"))
 
-(def template-regex #"\{\{.*?\}\}")
-(def bracket-regex  #"\[\[(.*?)\]\]")
-
-(defn drop-surrounding [s n]
-  (.substring s n (- (count s) n)))
-
-(defn templates [definition]
-  (->> (re-seq template-regex definition)
-       (map #(drop-surrounding % 2))
-       (map #(s/split % #"\|"))))
-
-(defn drop-templates [def]
-  (s/replace def template-regex ""))
-
-(defn strip-brackets [def]
-  (s/replace def bracket-regex (fn [[match group]] group)))
-
-(defn verb-form-templates [entry]
-  (let [verb-form-template? (fn [template]
-                              (= (first template)
-                                 "es-verb form of"))]
-    (->> entry
-         :def
-         templates
-         (filter verb-form-template?))))
-
-(defn infinitives [verb-entries]
-  (->> verb-entries
-       (mapcat verb-form-templates)
-       (map last)
-       distinct
-       seq))
-
-;; TODO: don't strip templates?  Handle the reflexive template at least?
-(defn definitions [entries]
-  (->> entries
-       (map :def)
-       (map drop-templates)
-       (map strip-brackets)
-       (map #(s/trim %))
-       (remove s/blank?)
-       seq))
-
-
-;;;; TODO: figure out how to parse nouns. Need to handle feminine as
-;;;; well as plurals.  Is the position of the root in the template consistent?
-(defn root-forms [entries]
-  (->> entries
-       (map :def)
-       (mapcat templates)
-       (keep t/parse-template)
-       (apply merge)))
-
 ;; TODO: want to be able to pretend have "unico" match "único"
-
 (declare parse-nouns parse-verbs)
 
 (defn parse-word [word]
@@ -133,28 +79,3 @@
     (merge
      (when nouns {:noun nouns})
      (when verbs {:verb verbs}))))
-
-;; TODO: root forms not done at all
-(defn parse-nouns [noun-entries]
-  (let [defs (definitions noun-entries)
-        root-forms (root-forms noun-entries)
-        _ (pr root-forms)]
-    (merge
-     (when defs
-       {:defs (vec defs)})
-     root-forms
-     (comment (when root-forms
-                {:root-forms (vec root-forms)})))))
-
-(declare conjugated?)
-
-(defn parse-verbs [verb-entries]
-  (let [defs (definitions verb-entries)
-        infinitives (infinitives verb-entries)]
-    (merge
-     (when defs
-       {:defs (vec defs)})
-     (when infinitives
-       {:infinitives (vec infinitives)}))))
-
-(defn conjugated? [verb-entry])
