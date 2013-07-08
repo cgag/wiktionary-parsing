@@ -6,29 +6,23 @@
 (def double-braces   "{{}}"   (comp braces braces))
 (def double-brackets "[[]]" (comp brackets brackets))
 
-(defn remove-blanks 
-  "Remove map-entries who's values are blank strings"
-  [m]
-  (into {}
-        (for [[k v] m]
-          (when-not (s/blank? (str v))
-            [k v]))))
 
+(def myword
+  "Basically any string of non-whitespace"
+ (<+> (lexeme (many (none-of* " \n\t\r")))))
 
-
-
-(def id->lower 
+(def word->lower 
   "parses an identifier and converts it to lowercase"
-  (bind [i identifier]
+  (bind [i myword]
         (return (s/lower-case i))))
 
 
 (def basic-info
   "Parses all the information before the definition,
   the language, the word itself, and the part of speech."
-  (bind [lang id->lower
-         word id->lower
-         pos  id->lower]
+  (bind [lang word->lower
+         word word->lower
+         pos  word->lower]
         (return {:lang lang :word word :pos pos})))
 
 
@@ -38,7 +32,7 @@
   {{name-of-template | parmam | namedparam=whatever| ... }}"
   (bind [_ (put-state {:i -1})
          t (double-braces template-inner)]
-        (return (apply merge t))))
+        (return {:template (apply merge t)})))
 
 (def template-inner
   "parse the internals "
@@ -83,7 +77,7 @@
   "Parse the definition of a word which can contain a mixture of words and links"
   (many (<|> (bind [l link]
                    (return {:link l}))
-             (bind [word (<+> (lexeme (many (none-of* " \n\t\r"))))]
+             (bind [word myword]
                    (return {:word word})))))
 
 
@@ -93,5 +87,8 @@
   "Parse one of the Spanish definition entries"
   (bind [info basic-info
          _ (sym \#)
-         defnition  (many (<|> template definition))]
-        (return (assoc info :def definition))))
+         body (many (<|> template definition))]
+        (return (assoc info :body body))))
+
+(defn parse-line [line]
+  (value entry line))

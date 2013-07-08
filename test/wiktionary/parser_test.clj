@@ -35,16 +35,16 @@
         named-whitespace (value p/template named-with-whitespace)
         named-params (value p/template named-params)
         mixed-params (value p/template mixed-params)]
-    (is (= simple {"0" "hello"}))
-    (is (= simple-spaces {"0" "es-verb form of"}))
-    (is (= end-pipe {"0" "hello" "1" ""}))
-    (is (= mult-unamed {"0" "hello", "1" "world"}))
-    (is (= named-param {"hello" "world"}))
-    (is (= named-whitespace {"named" "it is true indeed"}))
-    (is (= named-params {"this" "that", "named" "this is true",
-                         "please" "work"}))
-    (is (= mixed-params {"0" "hello.!?$#!", "1" "world",
-                         "named" "true",    "2" "what's up"}))))
+    (is (= simple {:template {"0" "hello"}}))
+    (is (= simple-spaces {:template {"0" "es-verb form of"}}))
+    (is (= end-pipe {:template {"0" "hello" "1" ""}}))
+    (is (= mult-unamed {:template {"0" "hello", "1" "world"}}))
+    (is (= named-param {:template {"hello" "world"}}))
+    (is (= named-whitespace {:template {"named" "it is true indeed"}}))
+    (is (= named-params {:template {"this" "that", "named" "this is true",
+                         "please" "work"}}))
+    (is (= mixed-params {:template {"0" "hello.!?$#!", "1" "world",
+                         "named" "true",    "2" "what's up"}}))))
 
 
 ; Spanish adjustable  Adjective # [[#English|adjustable]], [[regulable]]
@@ -59,7 +59,18 @@
     (testing "language specific links"
       (is (= [{:link {:text "whatever" :language "english"}}] 
              (value p/definition "[[#English|whatever]]")))))
-  (testing "mixed link and text definitions"))
+  (testing "mixed link and text definitions"
+    (is (= [{:word "mixed"}
+            {:link {:text "link"}}
+            {:word "text"}
+            {:link {:language "lang" :text "link"}}]
+           (value p/definition "mixed [[link]] text [[#Lang|link]]")))))
+
+(deftest full-entry-test
+  (testing "Full word entries"
+    (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")))
+
+(value p/entry "Spanish	correr	Verb	# to [[run]].")
 
 ;; Just here for convient sending to repl w/ cpp
 (comment (run-tests))
