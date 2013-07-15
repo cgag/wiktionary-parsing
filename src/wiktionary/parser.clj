@@ -6,7 +6,6 @@
 (def double-braces   "{{}}"   (comp braces braces))
 (def double-brackets "[[]]" (comp brackets brackets))
 
-
 (def myword
   "Basically any string of non-whitespace"
  (<+> (lexeme (many (none-of* " \n\t\r")))))
@@ -16,7 +15,6 @@
   (bind [i myword]
         (return (s/lower-case i))))
 
-
 (def basic-info
   "Parses all the information before the definition,
   the language, the word itself, and the part of speech."
@@ -24,7 +22,6 @@
          word word->lower
          pos  word->lower]
         (return {:lang lang :word word :pos pos})))
-
 
 (def param
   "Parse a template param (parms are separated by |'s)
@@ -54,14 +51,6 @@
          t (double-braces template-inner)]
         (return {:template (apply merge t)})))
 
-
-
-
-
-
-
- 
-
 ;; TODO: must be a better way than this if and dropping the \#
 (def link 
   "Parse a link within a defintion of either of the forms:
@@ -71,12 +60,11 @@
         (if (= (count link-fields) 2)
           (let [[lang text] link-fields]
             (return {:language (->> lang 
-                                    (drop 1) 
+                                    (drop 1) ; Dropping #
                                     (apply str) 
                                     s/lower-case) 
                      :text text}))
           (return {:text (first link-fields)}))))
-
 
 (def definition
   "Parse the definition of a word which can contain a mixture of words and links"
@@ -84,7 +72,6 @@
                    (return {:link l}))
              (bind [word myword]
                    (return {:word word})))))
-
 
 (def entry
   "Parse one of the Spanish definition entries"
