@@ -8,32 +8,9 @@
             [wiktionary.parser :as p]
             [wiktionary.templates :as t]))
 
-;; TODO: eventually consider scrapping this and contributing to
-;; dbpedia's wiktionary stuff instead?
-
-;; TODO: learn where the name fmap comes from, I think it's some functor shit, check haskell wiki?
-(defn fmap [f m]
-  (into {} (for [[k v] m] [k (f v)]))) 
-
-(defn fold-into-vec [coll]
-  (r/fold (r/monoid into vector) coll))
-
-(def downcase-vals (partial fmap s/lower-case))
+;; TODO: look into dbpedia
 
 (def entries (read-string (slurp "parsed-entries")))
-
-
-;(defn line-vecs->entries [line-vecs]
-;(->> line-vecs
-;(r/map #(zipmap [:lang :word :pos :body] %))
-;;; drop leading "# " in front of definitions
-;(r/map #(update-in % [:body] (fn [body]
-;(.substring body 2))))
-;(r/map downcase-vals)))
-
-;;; TODO: learn more about r/monoid and monoids in general
-;(defonce entries (r/fold (r/monoid into vector) conj (line-vecs->entries line-vecs)))
-;(defonce sample  (filter (fn [_] (= (rand-int 1000) 5)) entries))
 
 ;;; TODO: pull request flatland/ordered?
 ;(defn oindex

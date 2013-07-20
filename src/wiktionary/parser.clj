@@ -7,8 +7,7 @@
 (def double-brackets "[[]]" (comp brackets brackets))
 
 (def myword
-  "Basically any string of non-whitespace"
- (<+> (lexeme (many (none-of* " \n\t\r")))))
+  "Basically any string of non-whitespace" (<+> (lexeme (many (none-of* " \n\t\r")))))
 
 (def word->lower 
   "parses an identifier and converts it to lowercase"
@@ -20,9 +19,10 @@
   the language, the word itself, and the part of speech."
   (bind [lang word->lower
          word word->lower
-         pos  word->lower]
-        (return {:lang lang :word word :pos pos})))
-
+         pos  (field "#")]
+        (return {:lang lang :word word :pos (-> pos 
+                                                s/trimr
+                                                s/lower-case)})))
 (def param
   "Parse a template param (parms are separated by |'s)
   They're given names that are just numbers according to which unamed 
@@ -51,25 +51,24 @@
          t (double-braces template-inner)]
         (return {:template (apply merge t)})))
 
-;; TODO: must be a better way than this if and dropping the \#
 (def link 
   "Parse a link within a defintion of either of the forms:
   [[linktext]]
-  [[#Language|linktext]]"
-  (bind [link-fields (double-brackets (sep-by (sym \|) (field "|]")))]
-        (if (= (count link-fields) 2)
-          (let [[lang text] link-fields]
-            (return {:language (->> lang 
-                                    (drop 1) ; Dropping #
-                                    (apply str) 
-                                    s/lower-case) 
-                     :text text}))
-          (return {:text (first link-fields)}))))
+  [[#Language|linktext]]
+  [[word#language]] (maybe??)
+  [[word#language|linktext]]"
+  (double-brackets
+    (bind [link-fields (sep-by (sym \|) (field "|]"))]
+          (if (= (count link-fields) 2)
+            (let [[lang text] link-fields]
+              (return {:target lang 
+                       :text   text}))
+            (return {:text (first link-fields)})))))
 
 (def definition
   "Parse the definition of a word which can contain a mixture of words and links"
-  (many (<|> (bind [l link]
-                   (return {:link l}))
+  (many (<|> (<:> (bind [l link]
+                        (return {:link l})))
              (bind [word myword]
                    (return {:word word})))))
 
@@ -80,5 +79,12 @@
          body (many (<|> template definition))]
         (return (assoc info :body body))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn parse-line [line]
-  (value entry line))
+  (let [state (parse entry line)]
+    (if (:ok state)
+      (:value state)
+      (throw (Exception. (str "error on: " line))))))
+
+;; TODO: Handle '' (random single quotes in definitions)

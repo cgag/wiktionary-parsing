@@ -21,10 +21,15 @@
 (def definition "Spanish	correr	Verb	# to [[run]].")
 
 (deftest basic-info-test
-  (let [{:keys [lang word pos]} (value p/basic-info test-entry)]
-    (is (= "spanish" lang))
-    (is (= "corran"  word))
-    (is (= "verb"    pos))))
+  (testing "basic info"
+    (let [{:keys [lang word pos]} (value p/basic-info test-entry)]
+      (is (= "spanish" lang))
+      (is (= "corran"  word))
+      (is (= "verb"    pos)))
+    (let [{:keys [lang word pos]} (value p/basic-info "Spanish	Abadán	Proper noun	# [[Abadan]]")]
+      (is (= "spanish" lang))
+      (is (= "abadán"  word))
+      (is (= "proper nouse")))))
 
 (deftest template-tests
   (let [simple        (value p/template simple-template)
@@ -41,10 +46,11 @@
     (is (= mult-unamed {:template {"0" "hello", "1" "world"}}))
     (is (= named-param {:template {"hello" "world"}}))
     (is (= named-whitespace {:template {"named" "it is true indeed"}}))
-    (is (= named-params {:template {"this" "that", "named" "this is true",
-                         "please" "work"}}))
+    (is (= named-params {:template {"this" "that", 
+                                    "named" "this is true",
+                                    "please" "work"}}))
     (is (= mixed-params {:template {"0" "hello.!?$#!", "1" "world",
-                         "named" "true",    "2" "what's up"}}))))
+                                    "named" "true",    "2" "what's up"}}))))
 
 
 ; Spanish adjustable  Adjective # [[#English|adjustable]], [[regulable]]
@@ -57,20 +63,26 @@
       (is (= [{:link {:text "a link"}}]
              (value p/definition "[[a link]]"))))
     (testing "language specific links"
-      (is (= [{:link {:text "whatever" :language "english"}}] 
-             (value p/definition "[[#English|whatever]]")))))
+      (is (= [{:link {:text "whatever" :target "#English"}}] 
+             (value p/definition "[[#English|whatever]]")))
+      (is (= [{:link {:text "Acción" :target "acción#Spanish"}}]
+             (value p/definition "[[acción#Spanish|Acción]]")))
+      (is (= [{:link {:text "acción#Spanish"}}]
+             (value p/definition "[[acción#Spanish]]")))))
   (testing "mixed link and text definitions"
     (is (= [{:word "mixed"}
             {:link {:text "link"}}
             {:word "text"}
-            {:link {:language "lang" :text "link"}}]
+            {:link {:target "#Lang" :text "link"}}]
            (value p/definition "mixed [[link]] text [[#Lang|link]]")))))
+
 
 (deftest full-entry-test
   (testing "Full word entries"
-    (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")))
-
-(value p/entry "Spanish	correr	Verb	# to [[run]].")
+    (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")
+    (value p/entry "Spanish	cuanto	Adjective	# as much [of]; as many; however much; however many")
+    (value p/entry "Spanish cuanto  Pronoun # whatever  [[quantity]], as much, however much")
+    (value p/entry "Spanish cuanto  Pronoun # {{context|in “[[en]] cuanto [[a]]...”}} however much concern; “[[regard]]”; [[regarding]]; [[as for]]")))
 
 ;; Just here for convient sending to repl w/ cpp
 (comment (run-tests))

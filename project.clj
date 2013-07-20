@@ -5,4 +5,5 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.flatland/ordered "1.4.0"]
-                 [org.blancas/kern "0.7.0"]])
+                 [org.blancas/kern "0.7.0"]
+                 [fipp "0.4.0"]])

@@ -1,3 +1,1 @@
-# Introduction to wiktionary
-
-TODO: write [great documentation](http://jacobian.org/writing/great-documentation/what-to-write/)
+A library for parsing wiktionary definition dumps.  Currently only targeting Spanish.
