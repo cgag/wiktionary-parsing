@@ -3,11 +3,23 @@
             [blancas.kern.lexer.basic :refer :all]
             [clojure.string :as s]))
 
-(def double-braces   "{{}}"   (comp braces braces))
+(def double-braces   "{{}}" (comp braces braces)) 
 (def double-brackets "[[]]" (comp brackets brackets))
 
 (def myword
-  "Basically any string of non-whitespace" (<+> (lexeme (many (none-of* " \n\t\r")))))
+  "Basically any string of non-whitespace" 
+  (letfn [(drop-surrounding-single-quotes [s]
+            (if-not (and (< 1 (count s))
+                         (= (subs s 0 2) "''"))
+              s
+              (loop [s s]
+                (if (and (< 1 (count s))
+                         (= \' (first s))
+                         (= \' (last  s)))
+                  (recur (subs s 1 (- (count s) 1)))
+                  s))))]
+    (bind [s (<+> (lexeme (many (none-of* " \n\t\r"))))]
+      (return (drop-surrounding-single-quotes s)))))
 
 (def word->lower 
   "parses an identifier and converts it to lowercase"
@@ -23,6 +35,7 @@
         (return {:lang lang :word word :pos (-> pos 
                                                 s/trimr
                                                 s/lower-case)})))
+
 (def param
   "Parse a template param (parms are separated by |'s)
   They're given names that are just numbers according to which unamed 
@@ -34,9 +47,9 @@
 
 (def named-param
   "Parse a named param from a template e.g. butts=dongs"
-  (<:> (bind  [name (field " =}|")
-               _    (sym \=)
-               value    (field "|}")]
+  (<:> (bind  [name  (field " =}|")
+               _     (sym \=)
+               value (field "|}")]
              (return {name (s/trimr value)}))))
 
 (def template-inner

@@ -74,7 +74,12 @@
             {:link {:text "link"}}
             {:word "text"}
             {:link {:target "#Lang" :text "link"}}]
-           (value p/definition "mixed [[link]] text [[#Lang|link]]")))))
+           (value p/definition "mixed [[link]] text [[#Lang|link]]"))))
+  (testing "definitions has words surrounded by single quotes"
+    (is (= [{:word "lol"}]   (value p/definition "lol")))
+    (is (= [{:word "'lol'"}] (value p/definition "'lol'")))
+    (is (= [{:word "lol"}]   (value p/definition "''lol''")))
+    (is (= [{:word "lol"}]   (value p/definition "''''lol''''")))))
 
 
 (deftest full-entry-test
@@ -82,7 +87,9 @@
     (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")
     (value p/entry "Spanish	cuanto	Adjective	# as much [of]; as many; however much; however many")
     (value p/entry "Spanish cuanto  Pronoun # whatever  [[quantity]], as much, however much")
-    (value p/entry "Spanish cuanto  Pronoun # {{context|in “[[en]] cuanto [[a]]...”}} however much concern; “[[regard]]”; [[regarding]]; [[as for]]")))
+    (value p/entry "Spanish cuanto  Pronoun # {{context|in “[[en]] cuanto [[a]]...”}} however much concern; “[[regard]]”; [[regarding]]; [[as for]]")
+    (value p/entry "Spanish	-aba	Suffix	# Suffix indicating the [[first-person singular]] [[imperfect]] [[indicative]] of [[-ar]] verbs.")
+    (value p/entry "Spanish	&c.	{{abbreviation|es}}	# {{obsolete form of|etc.|lang=es}}")))
 
 ;; Just here for convient sending to repl w/ cpp
 (comment (run-tests))

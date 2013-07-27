@@ -1,0 +1,14 @@
+''
+;
+exit
+(subs "lol" 1 2)
+(subs "lxooooxl" 1 2)
+(subs "lxooooxl" 1 (count "lxooooxl"))
+(subs "lxooooxl" 1 (- (count "lxooooxl") 1))
+(last "lol")
+(subs "''lol" 2)
+(subs "''lol" 0 2)
+(subs "2" 0 2)
+(count "2")
+(> 1 (count "2"))
+clear

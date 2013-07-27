@@ -13,16 +13,16 @@
 (def entries (read-string (slurp "parsed-entries")))
 
 ;;; TODO: pull request flatland/ordered?
-;(defn oindex
-;"Returns a map of the distinct values of ks in the xrel mapped to an
-;ordered-set of the maps in xrel with the corresponding values of ks."
-;{:added "1.0"}
-;[xrel ks]
-;(reduce
-;(fn [m x]
-;(let [ik (select-keys x ks)]
-;(assoc m ik (conj (get m ik (oset/ordered-set)) x))))
-;{} xrel))
+(defn oindex
+  "Returns a map of the distinct values of ks in the xrel mapped to an
+  ordered-set of the maps in xrel with the corresponding values of ks."
+  {:added "1.0"}
+  [xrel ks]
+  (reduce
+    (fn [m x]
+      (let [ik (select-keys x ks)]
+        (assoc m ik (conj (get m ik (oset/ordered-set)) x))))
+    {} xrel))
 
 ;(defonce ord-set (into (oset/ordered-set) entries))
 ;(defonce pos-index  (oindex ord-set [:pos]))
