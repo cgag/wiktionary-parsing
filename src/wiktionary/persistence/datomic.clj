@@ -1,0 +1,1 @@
+(ns wiktionary.persistence.datomic)

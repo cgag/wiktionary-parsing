@@ -9,8 +9,14 @@
             [wiktionary.templates :as t]))
 
 ;; TODO: look into dbpedia
-
-(def entries (read-string (slurp "parsed-entries")))
+;;
+;;(s/split "{dongs}{butts}" #"(?<=\})(?=\{)") => ["{dongs}" "{butts}"]
+;;
+(def entries (time (-> (slurp "parsed-entries")
+                       (s/split #"")
+                       (as-> lines
+                         (map read-string lines))
+                       doall)))
 
 ;;; TODO: pull request flatland/ordered?
 (defn oindex
