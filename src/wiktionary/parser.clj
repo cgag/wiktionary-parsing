@@ -95,7 +95,8 @@
 
 (def definition
   "Parse the definition of a word which can contain a mixture of words and links"
-  (many (<|> (<:> (bind [l link]
+  (many (<|> template
+             (<:> (bind [l link]
                         (return {:link l})))
              (bind [word myword]
                    (return {:word word})))))
@@ -103,8 +104,9 @@
 (def entry
   "Parse one of the Spanish definition entries"
   (bind [info basic-info
-         _ (field "#")
-         body (many (<|> template definition))]
+         _ (field "#") ;; better way to do this i'm sure
+         _ (sym \#)
+         body definition]
         (return (assoc info :body body))))
 
 

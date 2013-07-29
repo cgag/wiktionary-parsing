@@ -14,8 +14,18 @@
       "PoS: "      pos  "\n"
       "Definition: " (show-body body))))
 
+(defn- type-of [token]
+  (println token)
+  (first (keys token)))
+
 (defn- show-body [body]
-  body)
+  (for [token body]
+    (do (println token)
+        (condp = (type-of token)
+          :word (:word token)
+          :link (-> token :link :text)))))
+
+
 
 (comment (-> (run/n-entries 2)
              first

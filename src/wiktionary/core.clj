@@ -7,12 +7,14 @@
             [wiktionary.parser :as p]
             [wiktionary.homeless :as homeless]))
 
+;; TODO: Known problems:
+;;  -- render/show may or may not work, test it out at the repl
+;;  -- Punctuation is getting parsed as words, e.g., {:word ","}
+;;     -- It should probably just be ap art of the word preceding it, I don't want to deal with this shit.
+;;     parsing individual words in definitions really isn't very important
+
+
 ;; TODO: look into dbpedia
-;;
-;;(s/split "{dongs}{butts}" #"(?<=\})(?=\{)") => ["{dongs}" "{butts}"]
-;;
-;;(comment (as-> lines
-;;                                 (homeless/fold-into-vec (r/map read-string lines))  
 
 (defonce slurped (slurp "parsed-entries"))
 (defonce entries (->> (s/split slurped #"\"DIVIDER\"\n")
@@ -42,8 +44,8 @@
   (pos-index {:pos pos}))
 
 ;;; return a set of entries for a given word
-;(defn by-word [word]
-;(word-index {:word word}))
+(defn by-word [word]
+  (word-index {:word word}))
 
 ;(defn pos-filter [pos entries]
 ;(filter #(= (:pos %) pos) entries))

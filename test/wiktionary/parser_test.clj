@@ -92,11 +92,9 @@
 (deftest full-entry-test
   (testing "Full word entries"
     (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")
-    (value p/entry "Spanish	cuanto	Adjective	# as much [of]; as many; however much; however many")
-    (value p/entry "Spanish cuanto  Pronoun # whatever  [[quantity]], as much, however much")
-    (value p/entry "Spanish cuanto  Pronoun # {{context|in “[[en]] cuanto [[a]]...”}} however much concern; “[[regard]]”; [[regarding]]; [[as for]]")
+    (value p/entry "Spanish	cuanto	Pronoun	# {{context|in “[[en]] cuanto [[a]]...”}} however much concern; “[[regard]]”; [[regarding]]; [[as for]]")
     (value p/entry "Spanish	-aba	Suffix	# Suffix indicating the [[first-person singular]] [[imperfect]] [[indicative]] of [[-ar]] verbs.")
-    (value p/entry "Spanish	&c.	{{abbreviation|es}}	# {{obsolete form of|etc.|lang=es}}")))
+    (value p/entry "Spanish	&c.	{{abbreviation|es}}	# dongs {{obsolete form of|etc.|lang=es}} lol")))
 
 ;; Just here for convient sending to repl w/ cpp
 (comment (run-tests))
