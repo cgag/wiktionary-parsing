@@ -2,17 +2,17 @@
   (:require [clojure.core.reducers :as r]
             [clojure.string :as s]
             [fipp.edn :refer [pprint]]
-            [wiktionary.parser :as p]))
+            [wiktionary.parser :as p]
+            [wiktionary.homeless :as homeless]))
 
 ;;; TODO: learn more about r/monoid and monoids in general
-(defn fold-into-vec [coll]
-  (r/fold (r/monoid into vector) conj coll))
+
 
 (def ^:dynamic *input-file* "spanish-definitions.tsv")
 
 (defonce lines (s/split (slurp *input-file*) #"\n"))
 
-(defn parse-entries [lines] (fold-into-vec (r/map p/parse-line lines)))
+(defn parse-entries [lines] (homeless/fold-into-vec (r/map p/parse-line lines)))
 
 ;(defonce entries (parse-entries lines))
 
@@ -26,6 +26,7 @@
                        (with-out-str 
                          (->> lines
                               parse-entries
+                              (interpose "DIVIDER")
                               (map pprint)
                               doall)))))
 

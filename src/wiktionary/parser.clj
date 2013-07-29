@@ -1,7 +1,18 @@
 (ns wiktionary.parser
   (:require [blancas.kern.core :refer :all]
             [blancas.kern.lexer.basic :refer :all]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [wiktionary.template :as t]))
+
+(declare entry)
+
+(defn parse-line [line]
+  (let [state (parse entry line)]
+    (if (:ok state)
+      (:value state)
+      (throw (Exception. (str "error on: " line))))))
+
+;;;;;;;;;;;;;;
 
 (def double-braces   "{{}}" (comp braces braces)) 
 (def double-brackets "[[]]" (comp brackets brackets))
@@ -26,15 +37,19 @@
   (bind [i myword]
         (return (s/lower-case i))))
 
+(declare template)
+
 (def basic-info
   "Parses all the information before the definition,
   the language, the word itself, and the part of speech."
-  (bind [lang word->lower
-         word word->lower
-         pos  (field "#")]
-        (return {:lang lang :word word :pos (-> pos 
-                                                s/trimr
-                                                s/lower-case)})))
+  (bind [lang (field* "\t") 
+         _ (sym \tab) 
+         word (field* "\t") 
+         _ (sym \tab) 
+         pos (<|> template (field* "\t"))]
+        (return {:lang (s/lower-case lang) :word (s/lower-case word) :pos (if (map? pos) 
+                                                                            (t/name (:template pos))
+                                                                            (s/lower-case pos))})))
 
 (def param
   "Parse a template param (parms are separated by |'s)
@@ -88,16 +103,9 @@
 (def entry
   "Parse one of the Spanish definition entries"
   (bind [info basic-info
-         _ (sym \#)
+         _ (field "#")
          body (many (<|> template definition))]
         (return (assoc info :body body))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn parse-line [line]
-  (let [state (parse entry line)]
-    (if (:ok state)
-      (:value state)
-      (throw (Exception. (str "error on: " line))))))
-
-;; TODO: Handle '' (random single quotes in definitions)
+(comment (def test-entry "Spanish\ta otra cosa, mariposa\tPhrase\t# {{idiomatic|lang=es}} Let's change the subject, shall we?$"))

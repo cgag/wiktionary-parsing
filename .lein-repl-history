@@ -12,3 +12,6 @@ exit
 (count "2")
 (> 1 (count "2"))
 clear
+\\t
+\t
+"\t"

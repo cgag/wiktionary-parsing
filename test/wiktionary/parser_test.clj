@@ -29,7 +29,14 @@
     (let [{:keys [lang word pos]} (value p/basic-info "Spanish	Abadán	Proper noun	# [[Abadan]]")]
       (is (= "spanish" lang))
       (is (= "abadán"  word))
-      (is (= "proper nouse")))))
+      (is (= "proper nouse")))
+    (let [{:keys [lang word pos]} (value p/basic-info "Spanish\ta otra cosa, mariposa\tPhrase\t# {{idiomatic|lang=es}} Let's change the subject, shall we?$")]
+      (is (= "spanish" lang))
+      (is (= "a otra cosa, mariposa" word))
+      (is (= "phrase" pos)))
+    (testing "template's for part of speech"
+      (let [{:keys [lang word pos]} (value p/basic-info "Spanish	&c.	{{abbreviation|es}}	# {{obsolete form of|etc.|lang=es}}")]
+        (is (= "abbreviation" pos))))))
 
 (deftest template-tests
   (let [simple        (value p/template simple-template)

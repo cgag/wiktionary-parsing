@@ -4,19 +4,20 @@
             [clojure.walk :as w]
             [clojure.core.reducers :as r]
             [flatland.ordered.set :as oset]
-            [flatland.ordered.map :as omap]
             [wiktionary.parser :as p]
-            [wiktionary.templates :as t]))
+            [wiktionary.homeless :as homeless]))
 
 ;; TODO: look into dbpedia
 ;;
 ;;(s/split "{dongs}{butts}" #"(?<=\})(?=\{)") => ["{dongs}" "{butts}"]
 ;;
-(def entries (time (-> (slurp "parsed-entries")
-                       (s/split #"")
-                       (as-> lines
-                         (map read-string lines))
-                       doall)))
+;;(comment (as-> lines
+;;                                 (homeless/fold-into-vec (r/map read-string lines))  
+
+(defonce slurped (slurp "parsed-entries"))
+(defonce entries (->> (s/split slurped #"\"DIVIDER\"\n")
+                      (r/map read-string)
+                      homeless/fold-into-vec))
 
 ;;; TODO: pull request flatland/ordered?
 (defn oindex
@@ -30,15 +31,15 @@
         (assoc m ik (conj (get m ik (oset/ordered-set)) x))))
     {} xrel))
 
-;(defonce ord-set (into (oset/ordered-set) entries))
-;(defonce pos-index  (oindex ord-set [:pos]))
-;(defonce word-index (oindex ord-set [:word]))
+(defonce ord-set    (into (oset/ordered-set) entries))
+(defonce pos-index  (oindex ord-set [:pos]))
+(defonce word-index (oindex ord-set [:word]))
 
-;(def parts-of-speech (map :pos (keys pos-index)))
+(def parts-of-speech (map :pos (keys pos-index)))
 
 ;;; return a set of entries for a given word
-;(defn by-pos [pos]
-;(pos-index {:pos pos}))
+(defn by-pos [pos]
+  (pos-index {:pos pos}))
 
 ;;; return a set of entries for a given word
 ;(defn by-word [word]
