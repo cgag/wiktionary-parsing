@@ -94,7 +94,8 @@
     (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")
     (value p/entry "Spanish	cuanto	Pronoun	# {{context|in “[[en]] cuanto [[a]]...”}} however much concern; “[[regard]]”; [[regarding]]; [[as for]]")
     (value p/entry "Spanish	-aba	Suffix	# Suffix indicating the [[first-person singular]] [[imperfect]] [[indicative]] of [[-ar]] verbs.")
-    (value p/entry "Spanish	&c.	{{abbreviation|es}}	# dongs {{obsolete form of|etc.|lang=es}} lol")))
+    (value p/entry "Spanish	&c.	{{abbreviation|es}}	# dongs {{obsolete form of|etc.|lang=es}} lol")
+    (value p/entry  "Spanish	&c.	{{abbreviation|es}}	# dongs {{obsolete form of|etc.|lang=es}}, lol, [[wtf]], [butts]: please: why don't you work; ? huh?")))
 
 ;; Just here for convient sending to repl w/ cpp
 (comment (run-tests))

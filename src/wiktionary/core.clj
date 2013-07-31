@@ -7,7 +7,11 @@
             [wiktionary.parser :as p]
             [wiktionary.homeless :as homeless]))
 
+(set! *warn-on-reflection* true)
+
 ;; TODO: Known problems:
+;;  -- Haven't finished the parse-word method, still need to properly handle
+;;  merging multiple definitions into a single map
 ;;  -- render/show may or may not work, test it out at the repl
 ;;  -- Punctuation is getting parsed as words, e.g., {:word ","}
 ;;     -- It should probably just be ap art of the word preceding it, I don't want to deal with this shit.
@@ -19,7 +23,7 @@
 (defonce slurped (slurp "parsed-entries"))
 (defonce entries (->> (s/split slurped #"\"DIVIDER\"\n")
                       (r/map read-string)
-                      homeless/fold-into-vec))
+                      homeless/foldv))
 
 ;;; TODO: pull request flatland/ordered?
 (defn oindex
@@ -47,22 +51,28 @@
 (defn by-word [word]
   (word-index {:word word}))
 
-;(defn pos-filter [pos entries]
-;(filter #(= (:pos %) pos) entries))
+(defn pos-filter [pos entries]
+  (filter #(= (:pos %) pos) entries))
 
-;(def nouns (partial pos-filter "noun"))
-;(def verbs (partial pos-filter "verb"))
-;(def adjectives (partial pos-filter "adjective"))
+(def nouns (partial pos-filter "noun"))
+(def verbs (partial pos-filter "verb"))
+(def adjectives (partial pos-filter "adjective"))
 
-;(def all-adjectives (by-pos "adjective"))
+(def all-adjectives (by-pos "adjective"))
 
 ;;; TODO: want to be able to pretend have "unico" match "único"
-;(declare parse-nouns parse-verbs)
+(declare parse-nouns parse-verbs)
 
-;(defn parse-word [word]
-;(let [entries (by-word word)
-;nouns   (parse-nouns (nouns entries))
-;verbs   (parse-verbs (verbs entries))]
-;(merge
-;(when nouns {:noun nouns})
-;(when verbs {:verb verbs}))))
+(defn parse-word [word]
+  (let [entries (by-word word)
+        nouns   (into [] (map :body (nouns entries)))
+        verbs   (into [] (map :body (verbs entries)))
+        ]
+    (merge
+      (when nouns {:noun nouns})
+      (when verbs {:verb verbs}))))
+
+(defn merge-nouns [noun-entries]
+  )
+
+(defn merge-verbs [verb-entries])

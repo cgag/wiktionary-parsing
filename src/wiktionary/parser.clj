@@ -4,6 +4,8 @@
             [clojure.string :as s]
             [wiktionary.template :as t]))
 
+(set! *warn-on-reflection* true)
+
 (declare entry)
 
 (defn parse-line [line]
@@ -37,6 +39,9 @@
   (bind [i myword]
         (return (s/lower-case i))))
 
+;(def punctuation
+  ;(?? #{\" \; \. \' \}))
+
 (declare template)
 
 (def basic-info
@@ -58,7 +63,7 @@
   (bind [fld (field "|}")
          _ (modify-state #(update-in % [:i] inc))
          u get-state]
-        (return {(str (:i u)) (s/trimr fld)})))
+        (return {(:i u) (s/trimr fld)})))
 
 (def named-param
   "Parse a named param from a template e.g. butts=dongs"

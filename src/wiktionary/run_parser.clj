@@ -5,6 +5,8 @@
             [wiktionary.parser :as p]
             [wiktionary.homeless :as homeless]))
 
+(set! *warn-on-reflection* true)
+
 ;;; TODO: learn more about r/monoid and monoids in general
 
 
@@ -12,9 +14,7 @@
 
 (defonce lines (s/split (slurp *input-file*) #"\n"))
 
-(defn parse-entries [lines] (homeless/fold-into-vec (r/map p/parse-line lines)))
-
-;(defonce entries (parse-entries lines))
+(defn parse-entries [lines] (homeless/foldv (r/map p/parse-line lines)))
 
 (defn n-entries [n] 
   (let [rdr (clojure.java.io/reader *input-file*)] 

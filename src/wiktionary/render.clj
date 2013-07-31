@@ -2,6 +2,8 @@
   (:require [wiktionary.run-parser :as run]
             [wiktionary.parser :as p]))
 
+(set! *warn-on-reflection* true)
+
 (declare show-body)
 
 (defmulti render (fn [m] (first (keys m))))
@@ -15,17 +17,15 @@
       "Definition: " (show-body body))))
 
 (defn- type-of [token]
-  (println token)
   (first (keys token)))
 
 (defn- show-body [body]
-  (for [token body]
-    (do (println token)
-        (condp = (type-of token)
-          :word (:word token)
-          :link (-> token :link :text)))))
-
-
+  (apply str
+         (for [token body]
+           (condp = (type-of token)
+             :word (:word token)
+             :link (-> token :link :text)
+             :template nil))))
 
 (comment (-> (run/n-entries 2)
              first
