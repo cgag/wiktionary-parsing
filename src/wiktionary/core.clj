@@ -63,16 +63,25 @@
 ;;; TODO: want to be able to pretend have "unico" match "único"
 (declare parse-nouns parse-verbs)
 
+(comment {:lang "spanish"
+          :word "recuerdo"
+          :verb [{:form-of "recordar", blah blah tense
+                  :definition ["hwtever"]} 
+                 {:form-of "recordar" blah blah
+                  :definition ["fuck"]}]
+          :noun [[{:word "memory"}] [{:word "souvineur"}  {:word  "whatever"}] ] })
+
 (defn parse-word [word]
   (let [entries (by-word word)
-        nouns   (into [] (map :body (nouns entries)))
-        verbs   (into [] (map :body (verbs entries)))
-        ]
-    (merge
-      (when nouns {:noun nouns})
-      (when verbs {:verb verbs}))))
+        verbs   (verbs entries)
+        nouns   (nouns entries)
+        verb-basic-info  (dissoc (first verbs) :body)
+        noun-basic-info  (dissoc (first nouns) :body)
+        noun-bodies (into [] (map :body (nouns entries)))
+        verb-bodies (into [] (map :body (verbs entries)))]
+    {:word "butts"
+     :noun []
+     :verb []}))
 
-(defn merge-nouns [noun-entries]
-  )
-
+(defn merge-nouns [noun-entries])
 (defn merge-verbs [verb-entries])
