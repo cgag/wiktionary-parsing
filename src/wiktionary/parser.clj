@@ -1,10 +1,7 @@
 (ns wiktionary.parser
   (:require [blancas.kern.core :refer :all]
             [blancas.kern.lexer.basic :refer :all]
-            [clojure.string :as s]
-            [wiktionary.template :as t]))
-
-(set! *warn-on-reflection* true)
+            [clojure.string :as s]))
 
 (declare entry)
 
@@ -14,7 +11,44 @@
       (:value state)
       (throw (Exception. (str "error on: " line))))))
 
-;;;;;;;;;;;;;;
+(defn type-of [token]
+  (first (keys token)))
+
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Template stuff
+;;;;;;;;;;;;;;;;;;;;;
+
+(defn is-template? [token]
+  (= :template (type-of token)))
+
+(defn templates [entry]
+  (->> (:body entry)
+       (filter is-template?)
+       (map :template)))
+
+(defn template-name [t]
+  (get t 0))
+
+(defn verb-form [t]
+  {:template-name (name t)
+   :infinitive    (get t 1)
+   :number  (get t "number")
+   :formal? (get t "formal")
+   :person  (get t "pers")
+   :sense   (get t "sense")
+   :mood    (get t "mood")
+   :ending  (get t "ending")})
+
+;; TODO: Need to be able to parse templates to get info like: the infinitive of conjugated verbs,
+;; masculinity, plural/singular, etc
+;; TODO: Dump a list of template names and make sure we know what's available before we start 
+;; doing anything with the information.
+
+
+;;;;;;;;;;;;;;;;;;;;;;
+; Kern heavy lifting
+;;;;;;;;;;;;;;;;;;;;;;
 
 (def double-braces   "{{}}" (comp braces braces)) 
 (def double-brackets "[[]]" (comp brackets brackets))
@@ -39,9 +73,6 @@
   (bind [i myword]
         (return (s/lower-case i))))
 
-;(def punctuation
-  ;(?? #{\" \; \. \' \}))
-
 (declare template)
 
 (def basic-info
@@ -53,7 +84,7 @@
          _ (sym \tab) 
          pos (<|> template (field* "\t"))]
         (return {:lang (s/lower-case lang) :word (s/lower-case word) :pos (if (map? pos) 
-                                                                            (t/name (:template pos))
+                                                                            (template-name (:template pos))
                                                                             (s/lower-case pos))})))
 
 (def param

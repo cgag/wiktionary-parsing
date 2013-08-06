@@ -16,17 +16,14 @@
       "PoS: "      pos  "\n"
       "Definition: " (show-body body))))
 
-(defn- type-of [token]
-  (first (keys token)))
-
 (defn- show-body [body]
   (apply str
-         (for [token body]
-           (condp = (type-of token)
-             :word (:word token)
-             :link (-> token :link :text)
-             :template nil))))
+         (interpose " " (for [token body]
+                          (condp = (p/type-of token)
+                            :word (:word token)
+                            :link (-> token :link :text)
+                            :template nil)))))
 
-(comment (-> (run/n-entries 2)
-             first
+(comment (-> (run/n-entries 200)
+             last
              show))

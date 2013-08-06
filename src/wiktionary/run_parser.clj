@@ -9,7 +9,6 @@
 
 ;;; TODO: learn more about r/monoid and monoids in general
 
-
 (def ^:dynamic *input-file* "spanish-definitions.tsv")
 
 (defonce lines (s/split (slurp *input-file*) #"\n"))

@@ -37,7 +37,7 @@
         (assoc m ik (conj (get m ik (oset/ordered-set)) x))))
     {} xrel))
 
-(defonce ord-set    (into (oset/ordered-set) entries))
+(defonce ord-set    (oset/into-ordered-set  entries))
 (defonce pos-index  (oindex ord-set [:pos]))
 (defonce word-index (oindex ord-set [:word]))
 
@@ -65,20 +65,46 @@
 
 (comment {:lang "spanish"
           :word "recuerdo"
-          :verb [{:form-of "recordar", blah blah tense
+          :verb [{:form-of "recordar" 
                   :definition ["hwtever"]} 
-                 {:form-of "recordar" blah blah
+                 {:form-of "recordar"
                   :definition ["fuck"]}]
-          :noun [[{:word "memory"}] [{:word "souvineur"}  {:word  "whatever"}] ] })
+          :noun [[{:word "memory"}] 
+                 [{:word "souvineur"} {:word  "whatever"}] ] })
+
+(defn unique-templates [entries]
+  (->> entries
+       (mapcat p/templates)
+       (map p/template-name)
+       (into #{})))
+
+(def verb-templates (unique-templates (verbs entries)))
+(def noun-templates (unique-templates (nouns entries)))
+
+(defn conjugated? [verb-entry]
+  (let [templates (p/templates verb-entry)]
+    (boolean (= (p/template-name (first templates))
+                "es-verb form of"))))
+
+(defn verb-form-info [verb-entry]
+  (when (conjugated? verb-entry) 
+    (p/verb-form (first (p/templates verb-entry)))))
+
+(defn conjugation-info [verb-entry]
+  (-> verb-entry p/templates first p/verb-form (dissoc :template-name)))
+
+(defn parse-verb [verb-entry]
+  (if (conjugated? verb-entry)
+    {:conjugation (conjugation-info verb-entry)}
+    {:definition  (:body verb-entry)}))
 
 (defn parse-word [word]
   (let [entries (by-word word)
-        verbs   (verbs entries)
-        nouns   (nouns entries)
-        verb-basic-info  (dissoc (first verbs) :body)
-        noun-basic-info  (dissoc (first nouns) :body)
-        noun-bodies (into [] (map :body (nouns entries)))
-        verb-bodies (into [] (map :body (verbs entries)))]
+        basic-info (dissoc (first entries) :pos :body)
+        verb-entries (verbs entries)
+        noun-entries (nouns entries)
+        noun-bodies (into [] (map :body noun-entries))
+        verb-bodies (into [] (map :body verb-entries))]
     {:word "butts"
      :noun []
      :verb []}))
