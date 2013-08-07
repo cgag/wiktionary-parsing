@@ -31,7 +31,7 @@
   (get t 0))
 
 (defn verb-form [t]
-  {:template-name (name t)
+  {:template-name (template-name t)
    :infinitive    (get t 1)
    :number  (get t "number")
    :formal? (get t "formal")

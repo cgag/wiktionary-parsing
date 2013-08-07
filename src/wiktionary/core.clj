@@ -5,7 +5,8 @@
             [clojure.core.reducers :as r]
             [flatland.ordered.set :as oset]
             [wiktionary.parser :as p]
-            [wiktionary.homeless :as homeless]))
+            [wiktionary.homeless :as homeless]
+            [wiktionary.render :as render]))
 
 (set! *warn-on-reflection* true)
 
@@ -94,20 +95,25 @@
   (-> verb-entry p/templates first p/verb-form (dissoc :template-name)))
 
 (defn parse-verb [verb-entry]
+  ;(map :body noun-entries)
   (if (conjugated? verb-entry)
     {:conjugation (conjugation-info verb-entry)}
-    {:definition  (:body verb-entry)}))
+    {:definition  (render/show-body (:body verb-entry))}))
+
+(defn parse-noun [noun-entry]
+  {:definition (render/show-body (:body noun-entry))})
 
 (defn parse-word [word]
   (let [entries (by-word word)
         basic-info (dissoc (first entries) :pos :body)
-        verb-entries (verbs entries)
-        noun-entries (nouns entries)
-        noun-bodies (into [] (map :body noun-entries))
-        verb-bodies (into [] (map :body verb-entries))]
-    {:word "butts"
-     :noun []
-     :verb []}))
+        verb-info (mapv parse-verb (verbs entries))
+        noun-info (mapv parse-noun (nouns entries))]
+    (merge basic-info
+           {:noun noun-info
+            :verb verb-info})))
 
 (defn merge-nouns [noun-entries])
 (defn merge-verbs [verb-entries])
+
+(defn definition [word]
+  (parse-word word))

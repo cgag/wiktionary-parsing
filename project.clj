@@ -8,5 +8,6 @@
                  [org.blancas/kern "0.7.0"]
                  [fipp "0.4.0"]
                  [ring "1.2.0"]
-                 [compojure "1.1.5"]])
+                 [compojure "1.1.5"]
+                 [hiccup "1.0.4"]])
 

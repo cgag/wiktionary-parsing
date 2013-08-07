@@ -16,7 +16,7 @@
       "PoS: "      pos  "\n"
       "Definition: " (show-body body))))
 
-(defn- show-body [body]
+(defn show-body [body]
   (apply str
          (interpose " " (for [token body]
                           (condp = (p/type-of token)

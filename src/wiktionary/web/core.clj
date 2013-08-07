@@ -2,10 +2,12 @@
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
+            [wiktionary.web.views :as views]
             [ring.adapter.jetty :as server]))
 
 (defroutes app-routes
-  (GET "/" [] "black triangle")
+  (GET "/" [] (views/home))
+  (GET "/word-info" {{verb :word} :params} (views/word-info word))
   (route/resources "/")
   (route/not-found "not found"))
 
@@ -23,3 +25,6 @@
 (defn stop-server []
   (when @server
     (.stop @server)))
+
+(comment (start-server))
+(comment (stop-server))
