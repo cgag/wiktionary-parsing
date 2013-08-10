@@ -1,6 +1,4 @@
-(ns wiktionary.core
-  (:require [clojure.string :as s]
-            [clojure.set :as set]
+(ns wiktionary.core (:require [clojure.string :as s] [clojure.set :as set]
             [clojure.walk :as w]
             [clojure.core.reducers :as r]
             [flatland.ordered.set :as oset]
@@ -57,6 +55,7 @@
 
 (def nouns (partial pos-filter "noun"))
 (def verbs (partial pos-filter "verb"))
+(defn non-verbs [entries] (filter #(not= "verb" (:pos %)) entries))
 (def adjectives (partial pos-filter "adjective"))
 
 (def all-adjectives (by-pos "adjective"))
@@ -100,17 +99,17 @@
     {:conjugation (conjugation-info verb-entry)}
     {:definition  (render/show-body (:body verb-entry))}))
 
-(defn parse-noun [noun-entry]
-  {:definition (render/show-body (:body noun-entry))})
+(defn parse-other [entry]
+  {:definition (render/show-body (:body entry))})
 
 (defn parse-word [word]
   (let [entries (by-word word)
         basic-info (dissoc (first entries) :pos :body)
-        verb-info (mapv parse-verb (verbs entries))
-        noun-info (mapv parse-noun (nouns entries))]
+        verb-info  (mapv parse-verb (verbs entries))
+        other-info (mapv parse-other (non-verbs entries))]
     (merge basic-info
-           {:noun noun-info
-            :verb verb-info})))
+           {:non-verbs other-info
+            :verbs verb-info})))
 
 (defn merge-nouns [noun-entries])
 (defn merge-verbs [verb-entries])

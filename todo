@@ -1,0 +1,3 @@
+Implement basic web interface for getting and displaying all the information about a word.  Use this to figure out how close we are to having everything working. 
+Implement basics of doing frequency counting.
+Actually store the entries in a db.  Datomic?

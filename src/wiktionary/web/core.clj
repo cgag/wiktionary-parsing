@@ -7,7 +7,10 @@
 
 (defroutes app-routes
   (GET "/" [] (views/home))
-  (GET "/word-info" {{verb :word} :params} (views/word-info word))
+  (GET "/word-info" {{word :word} :params} 
+       (views/word-info word))
+  (POST "/frequencies" {{text :text} :params} 
+        (views/word-frequencies text))
   (route/resources "/")
   (route/not-found "not found"))
 

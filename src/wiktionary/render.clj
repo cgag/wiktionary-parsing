@@ -1,5 +1,6 @@
 (ns wiktionary.render
-  (:require [wiktionary.run-parser :as run]
+  (:require [clojure.string :as s]
+            [wiktionary.run-parser :as run]
             [wiktionary.parser :as p]))
 
 (set! *warn-on-reflection* true)
@@ -17,12 +18,18 @@
       "Definition: " (show-body body))))
 
 (defn show-body [body]
-  (apply str
-         (interpose " " (for [token body]
-                          (condp = (p/type-of token)
-                            :word (:word token)
-                            :link (-> token :link :text)
-                            :template nil)))))
+  (cleanup
+    (apply str
+           (interpose " " (for [token body]
+                            (condp = (p/type-of token)
+                              :word (:word token)
+                              :link (-> token :link :text)
+                              :template nil))))))
+
+(defn cleanup [s]
+  (-> s
+      s/trim
+      (s/replace #" ([.,;:])" "$1")))
 
 (comment (-> (run/n-entries 200)
              last

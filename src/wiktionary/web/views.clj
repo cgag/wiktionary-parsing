@@ -1,22 +1,47 @@
 (ns wiktionary.web.views
-  (:require [hiccup.core :refer :all]
+  (:require [clojure.string :as s ]
+            [hiccup.core :refer :all]
             [hiccup.form :refer :all]
             [hiccup.page :refer [html5]]
             [wiktionary.core :as w]))
 
-(declare conjugation-form)
+(declare info-form frequencies-form)
 
-(defn home []
-  (html5
-    [:div"fuck"]
-    (conjugation-form)))
+(defmacro defview [view-name param-vec & body]
+  `(defn ~view-name ~param-vec
+     (html5 ~@body)))
 
-(defn info-form []
-  (form-to [:get "/conjugation-info"]
-    (label :verb "Verb: ")
-    (text-field :verb)))
+(defview home []
+  [:div.info-form info-form]
+  [:hr]
+  [:div.frequencies-form frequencies-form])
 
-(defn word-info [word]
-  (let [info (w/definition word)] 
-    (html5
-      [:div.info info])))
+(defview word-info [word]
+  (let [{:keys [lang word non-verbs verbs] :as info} 
+        (w/definition word)]
+    [:div.info 
+     [:h1 lang]
+     [:h2 word]
+     (when (seq non-verbs)
+       [:div [:h3 "Noun"]
+        [:li (for [non-verb-entry non-verbs]
+               [:ul (str non-verb-entry)])]])
+     (when (seq verbs) 
+       [:div [:h3 "Verb"]
+        [:li (for [verb-entry verbs]
+               [:ul (str verb-entry)])]])]))
+
+(defview word-frequencies [text]
+  [:div.text (str (frequencies (s/split text #"\s+")))])
+
+(def info-form
+  (form-to [:get "/word-info"]
+           (label :word "Word: ")
+           (text-field :word)
+           (submit-button "Submit")))
+
+(def frequencies-form
+  (form-to [:post "/frequencies"]
+           (label :text "Text: ")
+           (text-area :text)
+           (submit-button "Submit")))

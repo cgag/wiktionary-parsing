@@ -16,3 +16,17 @@ clear
 \t
 "\t"
 clear
+(frequencies [1 2 3])
+(frequencies [1 2 3 1])
+(frequencies (clojure.string/split "fuck fuck fuck lol dongs fuck" #"\s+"))
+(seq [])
+(seq [1])
+manr
+(clojure.string/split "lol , dongs ; " #"\s+")
+(clojure.string/split "fuck you lol , dongs ; " #"\s+")
+(clojure.string/split "fuck you lol , dongs ; " #"[,]")
+(clojure.string/split "fuck you lol , dongs ; " #"[,;]")
+(clojure.string/replace "fuck you lol , dongs ; " #"([,;])" "$1")
+(clojure.string/replace "fuck you lol , dongs ; " #"([,;])" "$1!!")
+(clojure.string/replace "fuck you lol , dongs ; " #" ([,;])" "$1!!")
+(clojure.string/replace "fuck you lol , dongs ; " #" ([,;])" "$1")

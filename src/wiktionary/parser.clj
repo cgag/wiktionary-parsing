@@ -14,7 +14,6 @@
 (defn type-of [token]
   (first (keys token)))
 
-
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Template stuff
 ;;;;;;;;;;;;;;;;;;;;;
