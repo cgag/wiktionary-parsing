@@ -1,4 +1,6 @@
-(ns wiktionary.core (:require [clojure.string :as s] [clojure.set :as set]
+(ns wiktionary.core 
+  (:require [clojure.string :as s] 
+            [clojure.set :as set]
             [clojure.walk :as w]
             [clojure.core.reducers :as r]
             [flatland.ordered.set :as oset]
@@ -7,15 +9,6 @@
             [wiktionary.render :as render]))
 
 (set! *warn-on-reflection* true)
-
-;; TODO: Known problems:
-;;  -- Haven't finished the parse-word method, still need to properly handle
-;;  merging multiple definitions into a single map
-;;  -- render/show may or may not work, test it out at the repl
-;;  -- Punctuation is getting parsed as words, e.g., {:word ","}
-;;     -- It should probably just be ap art of the word preceding it, I don't want to deal with this shit.
-;;     parsing individual words in definitions really isn't very important
-
 
 ;; TODO: look into dbpedia
 
@@ -63,15 +56,6 @@
 ;;; TODO: want to be able to pretend have "unico" match "único"
 (declare parse-nouns parse-verbs)
 
-(comment {:lang "spanish"
-          :word "recuerdo"
-          :verb [{:form-of "recordar" 
-                  :definition ["hwtever"]} 
-                 {:form-of "recordar"
-                  :definition ["fuck"]}]
-          :noun [[{:word "memory"}] 
-                 [{:word "souvineur"} {:word  "whatever"}] ] })
-
 (defn unique-templates [entries]
   (->> entries
        (mapcat p/templates)
@@ -86,6 +70,8 @@
     (boolean (= (p/template-name (first templates))
                 "es-verb form of"))))
 
+;; Assumption: If a verb is conjugated, the first and only thing 
+;; in the definition is the conjugation info (es-verb-form-of) template
 (defn verb-form-info [verb-entry]
   (when (conjugated? verb-entry) 
     (p/verb-form (first (p/templates verb-entry)))))
@@ -94,7 +80,6 @@
   (-> verb-entry p/templates first p/verb-form (dissoc :template-name)))
 
 (defn parse-verb [verb-entry]
-  ;(map :body noun-entries)
   (if (conjugated? verb-entry)
     {:conjugation (conjugation-info verb-entry)}
     {:definition  (render/show-body (:body verb-entry))}))
@@ -102,17 +87,26 @@
 (defn parse-other [entry]
   {:definition (render/show-body (:body entry))})
 
+;; TODO: need to leave part of speech in the entries
 (defn parse-word [word]
   (let [entries (by-word word)
-        basic-info (dissoc (first entries) :pos :body)
+        basic-info (dissoc (first entries) :body :pos)
         verb-info  (mapv parse-verb (verbs entries))
         other-info (mapv parse-other (non-verbs entries))]
     (merge basic-info
            {:non-verbs other-info
             :verbs verb-info})))
 
-(defn merge-nouns [noun-entries])
-(defn merge-verbs [verb-entries])
+;; corre -> #{correr}
+;; fue -> #{ir ser}
+;; recuerdo -> #{recuerdo recorder}
+(defn form-of [word]
+  (let [word-info (parse-word word)
+        verbs (:verbs word-info)]
+    (into #{}
+          (for [verb verbs
+                :when (:conjugation verb)]
+            (-> verb :conjugation :infinitive)))))
 
 (defn definition [word]
   (parse-word word))

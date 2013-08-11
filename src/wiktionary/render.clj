@@ -5,7 +5,7 @@
 
 (set! *warn-on-reflection* true)
 
-(declare show-body)
+(declare show-body cleanup)
 
 (defmulti render (fn [m] (first (keys m))))
 

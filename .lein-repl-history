@@ -30,3 +30,5 @@ manr
 (clojure.string/replace "fuck you lol , dongs ; " #"([,;])" "$1!!")
 (clojure.string/replace "fuck you lol , dongs ; " #" ([,;])" "$1!!")
 (clojure.string/replace "fuck you lol , dongs ; " #" ([,;])" "$1")
+(+ 1 2 3)
+lein repl

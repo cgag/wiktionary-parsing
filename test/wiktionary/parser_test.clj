@@ -47,17 +47,16 @@
         named-whitespace (value p/template named-with-whitespace)
         named-params (value p/template named-params)
         mixed-params (value p/template mixed-params)]
-    (is (= simple {:template {"0" "hello"}}))
-    (is (= simple-spaces {:template {"0" "es-verb form of"}}))
-    (is (= end-pipe {:template {"0" "hello" "1" ""}}))
-    (is (= mult-unamed {:template {"0" "hello", "1" "world"}}))
+    (is (= simple {:template {0 "hello"}}))
+    (is (= simple-spaces {:template {0 "es-verb form of"}}))
+    (is (= end-pipe {:template {0 "hello" 1 ""}}))
+    (is (= mult-unamed {:template {0 "hello", 1 "world"}}))
     (is (= named-param {:template {"hello" "world"}}))
     (is (= named-whitespace {:template {"named" "it is true indeed"}}))
     (is (= named-params {:template {"this" "that", 
                                     "named" "this is true",
-                                    "please" "work"}}))
-    (is (= mixed-params {:template {"0" "hello.!?$#!", "1" "world",
-                                    "named" "true",    "2" "what's up"}}))))
+                                    "please" "work"}})) (is (= mixed-params {:template {0 "hello.!?$#!", 1 "world",
+                                    "named" "true",    2 "what's up"}}))))
 
 
 ; Spanish adjustable  Adjective # [[#English|adjustable]], [[regulable]]
@@ -89,6 +88,8 @@
     (is (= [{:word "lol"}]   (value p/definition "''''lol''''")))))
 
 
+;; TODO: these are nice for runnign and manually inspecting the value output,
+;; but they should probably be real tests
 (deftest full-entry-test
   (testing "Full word entries"
     (value p/entry "Spanish	corran	Verb	# {{uds.}} {{es-verb form of|formal=yes|person=second-person|number=plural|sense=affirmative|mood=imperative|ending=er|correr}}")
