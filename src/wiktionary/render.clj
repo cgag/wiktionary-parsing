@@ -19,12 +19,12 @@
 
 (defn show-body [body]
   (cleanup
-    (apply str
-           (interpose " " (for [token body]
-                            (condp = (p/type-of token)
-                              :word (:word token)
-                              :link (-> token :link :text)
-                              :template nil))))))
+    (s/join " " 
+            (for [token body]
+              (condp = (p/type-of token)
+                :word (:word token)
+                :link (-> token :link :text)
+                :template nil)))))
 
 (defn cleanup [s]
   (-> s

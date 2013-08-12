@@ -9,5 +9,7 @@
                  [fipp "0.4.0"]
                  [ring "1.2.0"]
                  [compojure "1.1.5"]
-                 [hiccup "1.0.4"]])
+                 [hiccup "1.0.4"]
+                 [com.keminglabs/c2 "0.2.2"]
+                 ])
 

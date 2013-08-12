@@ -7,6 +7,7 @@
 
 (defroutes app-routes
   (GET "/" [] (views/home))
+  (GET "/c2test" [] (views/c2-test))
   (GET "/word-info" {{word :word} :params} 
        (views/word-info word))
   (POST "/frequencies" {{text :text} :params} 

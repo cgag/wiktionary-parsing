@@ -103,10 +103,9 @@
 (defn form-of [word]
   (let [word-info (parse-word word)
         verbs (:verbs word-info)]
-    (into #{}
-          (for [verb verbs
-                :when (:conjugation verb)]
-            (-> verb :conjugation :infinitive)))))
+    (set (for [verb verbs
+               :when (:conjugation verb)]
+           (-> verb :conjugation :infinitive)))))
 
 (defn definition [word]
   (parse-word word))

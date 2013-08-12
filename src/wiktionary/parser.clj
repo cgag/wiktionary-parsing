@@ -62,7 +62,7 @@
                 (if (and (< 1 (count s))
                          (= \' (first s))
                          (= \' (last  s)))
-                  (recur (subs s 1 (- (count s) 1)))
+                  (recur (subs s 1 (dec (count s))))
                   s))))]
     (bind [s (<+> (lexeme (many (none-of* " \n\t\r"))))]
       (return (drop-surrounding-single-quotes s)))))
