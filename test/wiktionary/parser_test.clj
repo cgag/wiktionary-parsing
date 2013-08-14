@@ -23,19 +23,20 @@
 (deftest basic-info-test
   (testing "basic info"
     (let [{:keys [lang word pos]} (value p/basic-info test-entry)]
-      (are [x y] (= x y) "spanish" lang
-           "corran"  word
-           "verb"    pos))
+      (are [x y] (= x y) 
+           lang "spanish"
+           word "corran"  
+           pos  "verb"))
     (let [{:keys [lang word pos]} (value p/basic-info "Spanish	Abadán	Proper noun	# [[Abadan]]")]
       (are [x y] (= x y) 
-           "spanish" lang
-           "abadán"  word
-           "proper noun" pos))
+           lang "spanish"
+           word "abadán"  
+           pos  "proper noun"))
     (let [{:keys [lang word pos]} (value p/basic-info "Spanish\ta otra cosa, mariposa\tPhrase\t# {{idiomatic|lang=es}} Let's change the subject, shall we?$")]
       (are [x y] (= x y) 
-           "spanish" lang
-           "a otra cosa, mariposa" word
-           "phrase" pos))
+           lang "spanish" 
+           word "a otra cosa, mariposa" 
+           pos  "phrase"))
     (testing "template's for part of speech"
       (let [{:keys [lang word pos]} (value p/basic-info "Spanish	&c.	{{abbreviation|es}}	# {{obsolete form of|etc.|lang=es}}")]
         (is (= "abbreviation" pos))))))
