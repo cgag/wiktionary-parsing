@@ -23,40 +23,36 @@
 (deftest basic-info-test
   (testing "basic info"
     (let [{:keys [lang word pos]} (value p/basic-info test-entry)]
-      (is (= "spanish" lang))
-      (is (= "corran"  word))
-      (is (= "verb"    pos)))
+      (are [x y] (= x y) "spanish" lang
+           "corran"  word
+           "verb"    pos))
     (let [{:keys [lang word pos]} (value p/basic-info "Spanish	Abadán	Proper noun	# [[Abadan]]")]
-      (is (= "spanish" lang))
-      (is (= "abadán"  word))
-      (is (= "proper nouse")))
+      (are [x y] (= x y) 
+           "spanish" lang
+           "abadán"  word
+           "proper noun" pos))
     (let [{:keys [lang word pos]} (value p/basic-info "Spanish\ta otra cosa, mariposa\tPhrase\t# {{idiomatic|lang=es}} Let's change the subject, shall we?$")]
-      (is (= "spanish" lang))
-      (is (= "a otra cosa, mariposa" word))
-      (is (= "phrase" pos)))
+      (are [x y] (= x y) 
+           "spanish" lang
+           "a otra cosa, mariposa" word
+           "phrase" pos))
     (testing "template's for part of speech"
       (let [{:keys [lang word pos]} (value p/basic-info "Spanish	&c.	{{abbreviation|es}}	# {{obsolete form of|etc.|lang=es}}")]
         (is (= "abbreviation" pos))))))
 
 (deftest template-tests
-  (let [simple        (value p/template simple-template)
-        simple-spaces (value p/template simple-template-spaces)
-        end-pipe      (value p/template end-with-pipe)
-        mult-unamed   (value p/template multiple-unnamed-params)
-        named-param   (value p/template named-param)
-        named-whitespace (value p/template named-with-whitespace)
-        named-params (value p/template named-params)
-        mixed-params (value p/template mixed-params)]
-    (is (= simple {:template {0 "hello"}}))
-    (is (= simple-spaces {:template {0 "es-verb form of"}}))
-    (is (= end-pipe {:template {0 "hello" 1 ""}}))
-    (is (= mult-unamed {:template {0 "hello", 1 "world"}}))
-    (is (= named-param {:template {"hello" "world"}}))
-    (is (= named-whitespace {:template {"named" "it is true indeed"}}))
-    (is (= named-params {:template {"this" "that", 
-                                    "named" "this is true",
-                                    "please" "work"}})) (is (= mixed-params {:template {0 "hello.!?$#!", 1 "world",
-                                    "named" "true",    2 "what's up"}}))))
+  (are [x y] (= (value p/template x) {:template y})
+       simple-template          {0 "hello"}
+       simple-template-spaces   {0 "es-verb form of"}
+       end-with-pipe            {0 "hello" 1 ""}
+       multiple-unnamed-params  {0 "hello", 1 "world"}
+       named-param              {"hello" "world"}
+       named-with-whitespace    {"named" "it is true indeed"}
+       named-params             {"this" "that", 
+                                 "named" "this is true",
+                                 "please" "work"} 
+       mixed-params             {0 "hello.!?$#!", 1 "world",
+                                 "named" "true",    2 "what's up"}))
 
 
 ; Spanish adjustable  Adjective # [[#English|adjustable]], [[regulable]]
@@ -69,12 +65,10 @@
       (is (= [{:link {:text "a link"}}]
              (value p/definition "[[a link]]"))))
     (testing "language specific links"
-      (is (= [{:link {:text "whatever" :target "#English"}}] 
-             (value p/definition "[[#English|whatever]]")))
-      (is (= [{:link {:text "Acción" :target "acción#Spanish"}}]
-             (value p/definition "[[acción#Spanish|Acción]]")))
-      (is (= [{:link {:text "acción#Spanish"}}]
-             (value p/definition "[[acción#Spanish]]")))))
+      (are [x y] (= (value p/definition x) y) 
+           "[[#English|whatever]]"     [{:link {:text "whatever" :target "#English"}}]
+           "[[acción#Spanish|Acción]]" [{:link {:text "Acción" :target "acción#Spanish"}}]
+           "[[acción#Spanish]]"        [{:link {:text "acción#Spanish"}}])))
   (testing "mixed link and text definitions"
     (is (= [{:word "mixed"}
             {:link {:text "link"}}
@@ -82,10 +76,11 @@
             {:link {:target "#Lang" :text "link"}}]
            (value p/definition "mixed [[link]] text [[#Lang|link]]"))))
   (testing "definitions has words surrounded by single quotes"
-    (is (= [{:word "lol"}]   (value p/definition "lol")))
-    (is (= [{:word "'lol'"}] (value p/definition "'lol'")))
-    (is (= [{:word "lol"}]   (value p/definition "''lol''")))
-    (is (= [{:word "lol"}]   (value p/definition "''''lol''''")))))
+    (are [x y] (= [{:word x}] (value p/definition y))
+         "lol"   "lol"
+         "lol"   "''lol''"
+         "lol"   "''''lol''''"
+         "'lol'" "'lol'")))
 
 
 ;; TODO: these are nice for runnign and manually inspecting the value output,
