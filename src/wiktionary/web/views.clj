@@ -5,7 +5,8 @@
             [hiccup.page :refer [html5]]
             [c2.core :refer [unify]]
             [c2.scale :as scale]
-            [wiktionary.core :as w]))
+            [wiktionary.core :as w]
+            [wiktionary.homeless :as homeless]))
 
 (declare info-form frequencies-form)
 
@@ -42,16 +43,16 @@
         m))
 
 (defview c2-test [freq-map]
-  (let [width 500, bar-height 20
-        data freq-map
-        s (scale/linear :domain [0 (apply max (vals data))]
-                        :range [0 width])]
-    [:div#bars
-     (unify data (fn [[label val]]
-                   [:div {:style (str "height: " bar-height
-                                  "; width: " (/ (s val) 1.0) "px"
-                                  "; background-color: blue;")}
-                    [:span {:style (str "color: " "white;")} label]]))]))
+  (homeless/dlet [width 500, bar-height 20
+                  data freq-map
+                  s (scale/linear :domain [0 (apply max (vals data))]
+                                  :range [0 width])]
+                 [:div#bars
+                  (unify data (fn [[label val]]
+                                [:div {:style (str "height: " bar-height
+                                                   "; width: " (/ (s val) 1.0) "px"
+                                                   "; background-color: blue;")}
+                                 [:span {:style (str "color: " "white;")} label]]))]))
 
 (declare display-conjugation-info)
 
@@ -72,6 +73,10 @@
 ;; and such is maybe kind of wack.  If "fue" appears 10 times, then "ser" and "ir"
 ;; both get credit for appearing 10 times. Perhaps we should just
 ;; merge them: "ser, ir: 10"
+;; -- fucking "para" is dominating everything by being a form of parir and parar.
+
+;; TODO: handle not having any valid words.  Handle the whole "valid words" thing in
+;; a cleaner way.
 (defview word-frequencies [text]
   [:div.text 
    (str (spanish-frequencies (words text)))
@@ -79,12 +84,13 @@
 
 ;; TODO: how to handle parens?
 (defn words [s]
-  (let [words (s/split s #"\s+|[,.|:;@#$%^&*+()]")]
-    (remove s/blank?
-            (for [word words] 
-              (-> word
-                  s/trim
-                  s/lower-case)))))
+  (let [words (s/split s #"\s+|[,.|:;-@#$%^&*+()]")]
+    (for [word words
+          :when (and (not (s/blank? word))
+                     (not (number? (read-string word))))]
+      (-> word
+          s/trim
+          s/lower-case))))
 
 (defn spanish-word? [word]
   (let [{:keys [verbs non-verbs]} (w/definition word)]
@@ -92,12 +98,12 @@
                  (seq non-verbs)))))
 
 (defn spanish-frequencies [words]
-  (let [spanish-words (filter spanish-word? words)
-        non-spanish-words (remove spanish-word? words)
-        forms (mapcat w/form-of spanish-words)]
-    {:valid-words   (frequencies forms)
-     :invalid-words (frequencies non-spanish-words)
-     :all-word      words}))
+  (homeless/dlet [spanish-words (filter spanish-word? words)
+                  non-spanish-words (remove spanish-word? words)
+                  forms (concat words (mapcat w/form-of spanish-words))]
+                 {:valid-words   (frequencies forms)
+                  :invalid-words (frequencies non-spanish-words)
+                  :all-word      words}))
 
 (def info-form
   (form-to [:get "/word-info"]
