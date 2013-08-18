@@ -3,13 +3,15 @@
             [compojure.handler :as handler]
             [compojure.route :as route]
             [wiktionary.web.views :as views]
-            [ring.adapter.jetty :as server]))
+            [ring.adapter.jetty :as server]
+            [ring.util.response :as resp]))
 
 (defroutes app-routes
   (GET "/" [] (views/home))
   (GET "/c2test" [] (views/c2-test))
   (GET "/word-info" {{word :word} :params} 
        (views/word-info word))
+  (GET "/frequencies" [] (resp/redirect "/"))
   (POST "/frequencies" {{text :text} :params} 
         (views/word-frequencies text))
   (route/resources "/")

@@ -43,16 +43,16 @@
         m))
 
 (defview c2-test [freq-map]
-  (homeless/dlet [width 500, bar-height 20
-                  data freq-map
-                  s (scale/linear :domain [0 (apply max (vals data))]
-                                  :range [0 width])]
-                 [:div#bars
-                  (unify data (fn [[label val]]
-                                [:div {:style (str "height: " bar-height
-                                                   "; width: " (/ (s val) 1.0) "px"
-                                                   "; background-color: blue;")}
-                                 [:span {:style (str "color: " "white;")} label]]))]))
+  (let [width 500, bar-height 20
+        data (sort-map freq-map)
+        s (scale/linear :domain [0 (apply max (vals data))]
+                        :range [0 width])]
+    [:div#bars
+     (unify data (fn [[label val]]
+                   [:div {:style (str "height: " bar-height
+                                      "; width: " (/ (s val) 1.0) "px"
+                                      "; background-color: blue;")}
+                    [:span {:style (str "color: " "white;")} label]]))]))
 
 (declare display-conjugation-info)
 
@@ -67,7 +67,7 @@
    (for [k (keys conjugation-info)]
      [:li (str k ": " (k conjugation-info))])])
 
-(declare words spanish-frequencies)
+(declare words lemma-frequencies)
 
 ;; TODO: Where we're at: this basically works but the way we handle conjugations
 ;; and such is maybe kind of wack.  If "fue" appears 10 times, then "ser" and "ir"
@@ -79,12 +79,12 @@
 ;; a cleaner way.
 (defview word-frequencies [text]
   [:div.text 
-   (str (spanish-frequencies (words text)))
-   (c2-test (sort-map (:valid-words (spanish-frequencies (words text)))))])
+   (str (lemma-frequencies (words text)))
+   (c2-test (lemma-frequencies (words text)))])
 
-;; TODO: how to handle parens?
 (defn words [s]
-  (let [words (s/split s #"\s+|[,.|:;-@#$%^&*+()]")]
+  "gimme a string, get back a seq of words"
+  (let [words (s/split s #"\s+|[,.|:;-@#$%^&*+()\"“”]")]
     (for [word words
           :when (and (not (s/blank? word))
                      (not (number? (read-string word))))]
@@ -92,18 +92,21 @@
           s/trim
           s/lower-case))))
 
-(defn spanish-word? [word]
+(defn known-word? [word]
   (let [{:keys [verbs non-verbs]} (w/definition word)]
     (boolean (or (seq verbs)
                  (seq non-verbs)))))
 
-(defn spanish-frequencies [words]
-  (homeless/dlet [spanish-words (filter spanish-word? words)
-                  non-spanish-words (remove spanish-word? words)
-                  forms (concat words (mapcat w/form-of spanish-words))]
-                 {:valid-words   (frequencies forms)
-                  :invalid-words (frequencies non-spanish-words)
-                  :all-word      words}))
+(defn non-verb? [word]
+  (seq (:non-verbs (w/definition word))))
+
+;; this anon fn for finding non-verbs should probably
+;; be a named one somewhere.
+(defn lemma-frequencies [words]
+  (let [verb-forms (mapcat w/form-of words)
+        other-pos  (filter non-verb? words)
+        not-found  (remove known-word? words)]
+    (frequencies (concat verb-forms other-pos not-found))))
 
 (def info-form
   (form-to [:get "/word-info"]

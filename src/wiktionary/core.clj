@@ -46,8 +46,15 @@
 (defn pos-filter [pos entries]
   (filter #(= (:pos %) pos) entries))
 
-(def nouns (partial pos-filter "noun"))
-(def verbs (partial pos-filter "verb"))
+(defn verb? [entry]
+  (= "verb" (:pos entry)))
+
+(defn noun? [entry]
+  (= "noun" (:pos entry)))
+
+(def nouns (partial filter noun?))
+(def verbs (partial filter verb?))
+
 (defn non-verbs [entries] (filter #(not= "verb" (:pos %)) entries))
 (def adjectives (partial pos-filter "adjective"))
 

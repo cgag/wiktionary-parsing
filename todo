@@ -1,16 +1,4 @@
-The current idea:
-  Given "para": we want to show osmething like
-  para, parar: <count>
-
-  Given "fue", we want "ser, ir: <count>"
-
-  Basically, only show the conjugated form if it also happens to be another part of speech,
-  never show it for verbs.
-
-  Later: try to actually identify parts of speech.
-
-Implement basic web interface for getting and displaying all the information about a word.  Use this to figure out how close we are to having everything working. 
-Implement basics of doing frequency counting.
+Integrate boilerpipe to extract articles and analyze them.
 Actually store the entries in a db.  Datomic?
 
 para #{parir, parar}
