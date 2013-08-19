@@ -14,8 +14,8 @@
   (GET "/frequencies" [] (resp/redirect "/"))
   (POST "/frequencies" {{text :text} :params} 
         (views/word-frequencies text))
-  (route/resources "/")
-  (route/not-found "not found"))
+  (route/resources "/" {:root "wiktionary/web/resources/public"})
+  (route/not-found "buts found"))
 
 (def app (handler/site app-routes))
 
@@ -25,7 +25,7 @@
   (if @server
     (.start @server)
     (do
-      (reset! server (server/run-jetty app {:port 8080 :join? false}))
+      (reset! server (server/run-jetty #'app {:port 8080 :join? false}))
       (start-server))))
 
 (defn stop-server []

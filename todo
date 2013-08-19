@@ -1,10 +1,7 @@
+Make the web server just return EDN
+move c2 stuff to clojurescript
+  - Get a decent clojurescript workflow set up
+settle on a sensible configuration for
+
 Integrate boilerpipe to extract articles and analyze them.
 Actually store the entries in a db.  Datomic?
-
-para #{parir, parar}
-fue  #{ser, ir}
-fui  #{ser, ir}
-es   #{ser}
-
-ser, ir: 2
-para, parir, para: 1
