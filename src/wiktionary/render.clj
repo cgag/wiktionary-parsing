@@ -3,19 +3,10 @@
             [wiktionary.run-parser :as run]
             [wiktionary.parser :as p]))
 
-(set! *warn-on-reflection* true)
-
-(declare show-body cleanup)
-
-(defmulti render (fn [m] (first (keys m))))
-
-(defn show [entry]
-  (let [{:keys [word lang pos body]} entry]
-    (str 
-      "Word: "     word "\n"
-      "Language: " lang "\n"
-      "PoS: "      pos  "\n"
-      "Definition: " (show-body body))))
+(defn cleanup [s]
+  (-> s
+      s/trim
+      (s/replace #" ([.,;:])" "$1")))
 
 (defn show-body [body]
   (cleanup
@@ -26,11 +17,10 @@
                 :link (-> token :link :text)
                 :template nil)))))
 
-(defn cleanup [s]
-  (-> s
-      s/trim
-      (s/replace #" ([.,;:])" "$1")))
-
-(comment (-> (run/n-entries 200)
-             last
-             show))
+(defn show [entry]
+  (let [{:keys [word lang pos body]} entry]
+    (str 
+      "Word: "     word "\n"
+      "Language: " lang "\n"
+      "PoS: "      pos  "\n"
+      "Definition: " (show-body body))))

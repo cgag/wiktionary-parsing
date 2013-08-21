@@ -4,8 +4,9 @@
 
 (def body-node 
   (node
-    [:div.fuck
+    [:div.whatever-man
      (for [i (range 10)]
        [:p (str "p: " i)])]))
 
-(d/append! (sel1 :body) body-node)
+(defn ^:export init [] 
+  (d/append! (sel1 :body) body-node))

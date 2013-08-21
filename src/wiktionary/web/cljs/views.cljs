@@ -1,46 +1,43 @@
-(ns wiktionary.web.views
-  (:require [clojure.string :as s ]
-            [hiccup.core :refer :all]
-            [hiccup.form :refer :all]
-            [hiccup.page :refer [html5 include-css include-js]]
-            [c2.core :refer [unify]]
+(ns wiktionary.web.cljs.views
+  (:require [clojure.string :as s]
             [c2.scale :as scale]
-            [wiktionary.core :as w]
-            [wiktionary.homeless :as homeless]))
-
-;; TODO: probably some of this can be in functions instead
-;; of in the macro
-(defmacro defview [view-name param-vec & body]
-  `(defn ~view-name ~param-vec
-     (html5 
-       [:head
-        [:title "Title"]]
-       [:body
-        ~@body
-        ])))
-
-
-(defview cljs [] [:div])
-
-(defview home []
-  (include-js "js/main.js")
-  [:script "wiktionary.web.cljs.views.init_home()"])
-;[:div.info-form info-form]
-;[:hr]
-;[:div.frequencies-form frequencies-form])
+            [dommy.core :as d]
+            ;; dommy crate not real crate
+            [crate.form :as form])
+  (:use [c2.core :only [unify]])
+  (:use-macros [dommy.macros :only [node sel1 deftemplate]]))
 
 ;; TODO: merge all the conjugations based on infinitive?
 (defn display-conjugation-info [conjugation-info]
   [:ul 
    (for [k (keys conjugation-info)]
-     [:li (str k ": " (k conjugation-info))])])
+     [:li (str k ": " (k conjugation-info))])])  
 
 (defn display-verb [verb-entry]
   (if-let [conjugation-info (:conjugation verb-entry)] 
     (display-conjugation-info conjugation-info)
     [:li (:definition verb-entry)]))
 
-(defview word-info [word]
+(def info-form
+  (node (form/form-to [:get "/word-info"]
+                      (form/label :word "Word: ")
+                      (form/text-field :word)
+                      (form/submit-button "Submit"))))
+
+(def frequencies-form
+  (node (form/form-to [:post "/frequencies"]
+                      (form/label :text "Text: ")
+                      (form/text-area :text)
+                      (form/submit-button "Submit"))))
+
+(def home
+  (node 
+    [:div.wrap
+     [:div.info-form info-form]
+     [:hr]
+     [:div.frequencies-form frequencies-form]]))
+
+(deftemplate word-info [word]
   (let [{:keys [lang word non-verbs verbs] :as info} 
         (w/definition word)]
     [:div.info 
@@ -61,7 +58,7 @@
                                   [(get m key1) key1])))
         m))
 
-(defview c2-test [freq-map]
+(deftemplate c2-test [freq-map]
   (let [width 500, bar-height 20
         data (sort-map freq-map)
         s (scale/linear :domain [0 (apply max (vals data))]
@@ -74,6 +71,10 @@
                     [:span {:style (str "color: " "white;")} label]]))]))
 
 
+(defn ^:export init-home []
+  (js/alert "here we are")
+  (d/append! (sel1 :body) home))
+
 ;; TODO: Where we're at: this basically works but the way we handle conjugations
 ;; and such is maybe kind of wack.  If "fue" appears 10 times, then "ser" and "ir"
 ;; both get credit for appearing 10 times. Perhaps we should just
@@ -82,7 +83,7 @@
 
 ;; TODO: handle not having any valid words.  Handle the whole "valid words" thing in
 ;; a cleaner way.
-(defview word-frequencies [text]
-  [:div.text 
-   (str (w/lemma-frequencies (w/words text)))
-   (c2-test (w/lemma-frequencies (w/words text)))])
+;(deftemplate word-frequencies [text]
+;[:div.text 
+;(str (lemma-frequencies (words text)))
+;(c2-test (lemma-frequencies (words text)))])

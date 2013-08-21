@@ -3,14 +3,6 @@
             [blancas.kern.lexer.basic :refer :all]
             [clojure.string :as s]))
 
-(declare entry)
-
-(defn parse-line [line]
-  (let [state (parse entry line)]
-    (if (:ok state)
-      (:value state)
-      (throw (Exception. (str "error on: " line))))))
-
 (defn type-of [token]
   (first (keys token)))
 
@@ -72,20 +64,6 @@
   (bind [i myword]
         (return (s/lower-case i))))
 
-(declare template)
-
-(def basic-info
-  "Parses all the information before the definition,
-  the language, the word itself, and the part of speech."
-  (bind [lang (field* "\t") 
-         _ (sym \tab) 
-         word (field* "\t") 
-         _ (sym \tab) 
-         pos (<|> template (field* "\t"))]
-        (return {:lang (s/lower-case lang) :word (s/lower-case word) :pos (if (map? pos) 
-                                                                            (template-name (:template pos))
-                                                                            (s/lower-case pos))})))
-
 (def param
   "Parse a template param (parms are separated by |'s)
   They're given names that are just numbers according to which unamed 
@@ -113,6 +91,18 @@
   (bind [_ (put-state {:i -1})
          t (double-braces template-inner)]
         (return {:template (apply merge t)})))
+
+(def basic-info
+  "Parses all the information before the definition,
+  the language, the word itself, and the part of speech."
+  (bind [lang (field* "\t") 
+         _ (sym \tab) 
+         word (field* "\t") 
+         _ (sym \tab) 
+         pos (<|> template (field* "\t"))]
+        (return {:lang (s/lower-case lang) :word (s/lower-case word) :pos (if (map? pos) 
+                                                                            (template-name (:template pos))
+                                                                            (s/lower-case pos))})))
 
 (def link 
   "Parse a link within a defintion of either of the forms:
@@ -144,5 +134,10 @@
          body definition]
         (return (assoc info :body body))))
 
+(defn parse-line [line]
+  (let [state (parse entry line)]
+    (if (:ok state)
+      (:value state)
+      (throw (Exception. (str "error on: " line))))))
 
 (comment (def test-entry "Spanish\ta otra cosa, mariposa\tPhrase\t# {{idiomatic|lang=es}} Let's change the subject, shall we?$"))

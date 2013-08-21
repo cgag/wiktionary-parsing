@@ -11,8 +11,9 @@
                  [compojure "1.1.5"]
                  [hiccup "1.0.4"]
                  [io.curtis/boilerpipe-clj "0.2.0"]
-                 [com.keminglabs/c2 "0.2.2"]
+                 [com.keminglabs/c2 "0.2.3"]
                  [prismatic/dommy "0.1.1"]
+                 [dommy-crate "0.2.1"]
                  ]
   :plugins [[lein-cljsbuild "0.3.2"]]
 

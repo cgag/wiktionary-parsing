@@ -8,6 +8,7 @@
 
 (defroutes app-routes
   (GET "/" [] (views/home))
+  (GET "/cljs" [] (views/cljs))
   (GET "/c2test" [] (views/c2-test))
   (GET "/word-info" {{word :word} :params} 
        (views/word-info word))
@@ -16,6 +17,7 @@
         (views/word-frequencies text))
   (route/resources "/" {:root "wiktionary/web/resources/public"})
   (route/not-found "buts found"))
+
 
 (def app (handler/site app-routes))
 

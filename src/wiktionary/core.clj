@@ -61,8 +61,6 @@
 (def all-adjectives (by-pos "adjective"))
 
 ;;; TODO: want to be able to pretend have "unico" match "único"
-(declare parse-nouns parse-verbs)
-
 (defn unique-templates [entries]
   (->> entries
        (mapcat p/templates)
@@ -104,6 +102,9 @@
            {:non-verbs other-info
             :verbs verb-info})))
 
+(defn definition [word]
+  (parse-word word))
+
 ;; corre -> #{correr}
 ;; fue -> #{ir ser}
 ;; recuerdo -> #{recuerdo recorder}
@@ -114,5 +115,29 @@
                :when (:conjugation verb)]
            (-> verb :conjugation :infinitive)))))
 
-(defn definition [word]
-  (parse-word word))
+(defn non-verb? [word]
+  (seq (:non-verbs (definition word))))
+
+(defn known-word? [word]
+  (let [{:keys [verbs non-verbs]} (definition word)]
+    (boolean (or (seq verbs)
+                 (seq non-verbs)))))
+
+(defn lemma-frequencies [words]
+  (let [verb-forms (mapcat form-of words)
+        other-pos  (filter non-verb? words)
+        not-found  (remove known-word? words)]
+    (frequencies (concat verb-forms other-pos not-found))))
+
+
+(defn words [s]
+  "gimme a string, get back a seq of words"
+  (let [words (s/split s #"\s+|[,.|:;-@#$%^&*+()\"“”]")]
+    (for [word words
+          :when (and (not (s/blank? word))
+                     (not (number? (read-string word))))]
+      (-> word
+          s/trim
+          s/lower-case))))
+
+
