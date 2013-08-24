@@ -10,6 +10,8 @@
   (GET "/" [] (views/home))
   (GET "/cljs" [] (views/cljs))
   (GET "/c2test" [] (views/c2-test))
+  (GET "/edn/word-info" {{word :word} :params} 
+       (views/edn-word-info word))
   (GET "/word-info" {{word :word} :params} 
        (views/word-info word))
   (GET "/frequencies" [] (resp/redirect "/"))

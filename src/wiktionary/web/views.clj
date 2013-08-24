@@ -14,17 +14,18 @@
   `(defn ~view-name ~param-vec
      (html5 
        [:head
+        [:meta {:charset "utf-8"}]
         [:title "Title"]]
        [:body
-        ~@body
-        ])))
+        ~@body])))
 
 
 (defview cljs [] [:div])
 
 (defview home []
   (include-js "js/main.js")
-  [:script "wiktionary.web.cljs.views.init_home()"])
+  ;[:script "wiktionary.web.cljs.views.init_home()"]
+  )
 ;[:div.info-form info-form]
 ;[:hr]
 ;[:div.frequencies-form frequencies-form])
@@ -39,6 +40,9 @@
   (if-let [conjugation-info (:conjugation verb-entry)] 
     (display-conjugation-info conjugation-info)
     [:li (:definition verb-entry)]))
+
+(defn edn-word-info [word]
+  (pr-str (w/definition word)))
 
 (defview word-info [word]
   (let [{:keys [lang word non-verbs verbs] :as info} 
@@ -74,14 +78,6 @@
                     [:span {:style (str "color: " "white;")} label]]))]))
 
 
-;; TODO: Where we're at: this basically works but the way we handle conjugations
-;; and such is maybe kind of wack.  If "fue" appears 10 times, then "ser" and "ir"
-;; both get credit for appearing 10 times. Perhaps we should just
-;; merge them: "ser, ir: 10"
-;; -- fucking "para" is dominating everything by being a form of parir and parar.
-
-;; TODO: handle not having any valid words.  Handle the whole "valid words" thing in
-;; a cleaner way.
 (defview word-frequencies [text]
   [:div.text 
    (str (w/lemma-frequencies (w/words text)))

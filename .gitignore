@@ -10,3 +10,4 @@ pom.xml
 .lein-plugins
 .lein-repl-history
 parsed-entries
+main.js
