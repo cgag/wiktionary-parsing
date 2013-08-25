@@ -17,7 +17,7 @@
   (GET "/frequencies" [] (resp/redirect "/"))
   (POST "/frequencies" {{text :text} :params} 
         (views/word-frequencies text))
-  (route/resources "/" {:root "wiktionary/web/resources/public"})
+  (route/resources "/")
   (route/not-found "buts found"))
 
 

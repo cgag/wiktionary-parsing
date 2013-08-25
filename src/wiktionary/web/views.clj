@@ -24,8 +24,9 @@
 
 (defview home []
   (include-js "js/main.js")
-  ;[:script "wiktionary.web.cljs.views.init_home()"]
-  )
+  "whatever man"
+  [:script "wiktionary.web.cljs.views.init_home()"])
+
 ;[:div.info-form info-form]
 ;[:hr]
 ;[:div.frequencies-form frequencies-form])

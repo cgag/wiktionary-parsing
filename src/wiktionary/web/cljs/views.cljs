@@ -1,11 +1,16 @@
 (ns wiktionary.web.cljs.views
-  (:require [clojure.string :as s]
-            [c2.scale :as scale]
-            [dommy.core :as d]
-            ;; dommy crate not real crate
-            [crate.form :as form])
+  (:require 
+    [clojure.browser.repl :as repl]
+    [clojure.string :as s]
+    [c2.scale :as scale]
+    [domina :as d]
+    [domina.css :refer [sel]]
+    [crate.core :as crate]
+    [crate.form :as form])
   (:use [c2.core :only [unify]])
-  (:use-macros [dommy.macros :only [node sel1 deftemplate]]))
+  (:use-macros [crate.def-macros :only [defpartial]]))
+
+(repl/connect "http://localhost:9000/repl")
 
 ;; TODO: merge all the conjugations based on infinitive?
 (defn display-conjugation-info [conjugation-info]
@@ -19,25 +24,24 @@
     [:li (:definition verb-entry)]))
 
 (def info-form
-  (node (form/form-to [:get "/word-info"]
-                      (form/label :word "Word: ")
-                      (form/text-field :word)
-                      (form/submit-button "Submit"))))
+  (form/form-to [:get "/word-info"]
+                (form/label :word "Word: ")
+                (form/text-field :word)
+                (form/submit-button "Submit")))
 
 (def frequencies-form
-  (node (form/form-to [:post "/frequencies"]
-                      (form/label :text "Text: ")
-                      (form/text-area :text)
-                      (form/submit-button "Submit"))))
+  (form/form-to [:post "/frequencies"]
+                (form/label :text "Text: ")
+                (form/text-area :text)
+                (form/submit-button "Submit")))
 
-(def home
-  (node 
-    [:div.wrap
-     [:div.info-form info-form]
-     [:hr]
-     [:div.frequencies-form frequencies-form]]))
+(defpartial home []
+  [:div.home
+   [:div.info-form info-form]
+   [:hr]
+   [:div.frequencies-form frequencies-form]])
 
-(deftemplate word-info [word]
+(defpartial word-info [word]
   (let [{:keys [lang word non-verbs verbs] :as info} 
         (w/definition word)]
     [:div.info 
@@ -58,7 +62,7 @@
                                   [(get m key1) key1])))
         m))
 
-(deftemplate c2-test [freq-map]
+(defpartial c2-test [freq-map]
   (let [width 500, bar-height 20
         data (sort-map freq-map)
         s (scale/linear :domain [0 (apply max (vals data))]
@@ -72,8 +76,7 @@
 
 
 (defn ^:export init-home []
-  (js/alert "here we are")
-  (d/append! (sel1 :body) home))
+  (d/append! (sel "body") (home)))
 
 ;; TODO: Where we're at: this basically works but the way we handle conjugations
 ;; and such is maybe kind of wack.  If "fue" appears 10 times, then "ser" and "ir"
