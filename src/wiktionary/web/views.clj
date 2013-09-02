@@ -17,48 +17,38 @@
         [:meta {:charset "utf-8"}]
         [:title "Title"]]
        [:body
-        ~@body])))
+        [:div.layout-container
+         [:div.body-container
+          ~@body]]])))
 
+(defmacro defpartial [name param-vec & body]
+  `(defn ~name ~param-vec
+     (html ~@body)))
 
-(defview cljs [] [:div])
+(defpartial init-js [init-str]
+  (include-js "/js/main.js")
+  [:script init-str])
 
 (defview home []
-  (include-js "js/main.js")
   "whatever man"
-  [:script "wiktionary.web.cljs.views.init_home()"])
+  (init-js "wiktionary.web.cljs.views.main();"))
 
-;[:div.info-form info-form]
-;[:hr]
-;[:div.frequencies-form frequencies-form])
+;; TODO: this and word-freqs are dumb, just override behavior of submitting
+;; forms
+(defview word-info [word]
+  "in word info view"
+  (init-js (str "wiktionary.web.cljs.views.init_word_info(\"" word "\");")))
 
-;; TODO: merge all the conjugations based on infinitive?
-(defn display-conjugation-info [conjugation-info]
-  [:ul 
-   (for [k (keys conjugation-info)]
-     [:li (str k ": " (k conjugation-info))])])
-
-(defn display-verb [verb-entry]
-  (if-let [conjugation-info (:conjugation verb-entry)] 
-    (display-conjugation-info conjugation-info)
-    [:li (:definition verb-entry)]))
+;; TODO: lmao this doesn't work if text has new lines
+(defview word-frequencies [text]
+  "in word-frequencies view"
+  (init-js (str "wiktionary.web.cljs.views.init_word_frequencies(\"" text "\");")))
 
 (defn edn-word-info [word]
   (pr-str (w/definition word)))
 
-(defview word-info [word]
-  (let [{:keys [lang word non-verbs verbs] :as info} 
-        (w/definition word)]
-    [:div.info 
-     [:h1 lang]
-     [:h2 word]
-     (when (seq non-verbs)
-       [:div [:h3 "Some non-verb part of speech"]
-        [:li (for [non-verb-entry non-verbs]
-               [:ul (str (:definition non-verb-entry))])]])
-     (when (seq verbs) 
-       [:div [:h3 "Verb"]
-        [:div (for [verb-entry verbs]
-                (display-verb verb-entry))]])]))
+(defn edn-word-frequencies [text]
+  (pr-str (w/lemma-frequencies (w/words text))))
 
 (defn sort-map [m]
   (into (sorted-map-by (fn [key1 key2]
@@ -66,20 +56,20 @@
                                   [(get m key1) key1])))
         m))
 
-(defview c2-test [freq-map]
-  (let [width 500, bar-height 20
-        data (sort-map freq-map)
-        s (scale/linear :domain [0 (apply max (vals data))]
-                        :range [0 width])]
-    [:div#bars
-     (unify data (fn [[label val]]
-                   [:div {:style (str "height: " bar-height
-                                      "; width: " (/ (s val) 1.0) "px"
-                                      "; background-color: blue;")}
-                    [:span {:style (str "color: " "white;")} label]]))]))
+;(defview c2-test [freq-map]
+  ;(let [width 500, bar-height 20
+        ;data (sort-map freq-map)
+        ;s (scale/linear :domain [0 (apply max (vals data))]
+                        ;:range [0 width])]
+    ;[:div#bars
+     ;(unify data (fn [[label val]]
+                   ;[:div {:style (str "height: " bar-height
+                                      ;"; width: " (/ (s val) 1.0) "px"
+                                      ;"; background-color: blue;")}
+                    ;[:span {:style (str "color: " "white;")} label]]))]))
 
 
-(defview word-frequencies [text]
-  [:div.text 
-   (str (w/lemma-frequencies (w/words text)))
-   (c2-test (w/lemma-frequencies (w/words text)))])
+;(defview word-frequencies [text]
+  ;[:div.text 
+   ;(str (w/lemma-frequencies (w/words text)))
+   ;(c2-test (w/lemma-frequencies (w/words text)))])
