@@ -18,12 +18,10 @@
                  ;; cljs
                  ;;
                  [org.clojure/google-closure-library-third-party "0.0-2029-2"]
-                 [cljs-http "0.0.6-SNAPSHOT"]
-                 [cljs-ajax "0.2.0"]
+                 [cljs-http "0.0.5"]
                  [domina "1.0.1"]
                  [crate "0.2.4"] 
-                 [com.keminglabs/c2 "0.2.3"]
-                 [cljs-ajax "0.1.6"]]
+                 [com.keminglabs/c2 "0.2.3"]]
   :repositories {"sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :plugins [[lein-cljsbuild "0.3.2"]]
 

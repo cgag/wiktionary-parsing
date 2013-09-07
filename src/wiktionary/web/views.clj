@@ -3,10 +3,15 @@
             [hiccup.core :refer :all]
             [hiccup.form :refer :all]
             [hiccup.page :refer [html5 include-css include-js]]
+            [hiccup.element :refer [link-to]]
             [c2.core :refer [unify]]
             [c2.scale :as scale]
             [wiktionary.core :as w]
             [wiktionary.homeless :as homeless]))
+
+(def nav
+  [:ul
+   [:li (link-to {:id "home-link"} "#" "home")]])
 
 ;; TODO: probably some of this can be in functions instead
 ;; of in the macro
@@ -18,6 +23,7 @@
         [:title "Title"]]
        [:body
         [:div.layout-container
+         nav
          [:div.body-container
           ~@body]]])))
 

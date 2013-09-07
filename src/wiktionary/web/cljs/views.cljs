@@ -51,12 +51,11 @@
 
 (declare layout)
 
-(defview home []
-  (layout 
-    [:div.home
-     [:div.info-form info-form]
-     [:hr]
-     [:div.frequencies-form frequencies-form]]))
+(defpartial home []
+  [:div.home
+   [:div.info-form info-form]
+   [:hr]
+   [:div.frequencies-form frequencies-form]])
 
 (defpartial render-word-info [entry]
   (let [{:keys [lang word non-verbs verbs] :as info} entry]
@@ -115,13 +114,7 @@
 
 (def nav-chan (chan))
 
-;(defpage home []
-  ;[:div.home
-   ;[:div.info-form info-form]
-   ;[:hr]
-   ;[:div.frequencies-form frequencies-form]])
-
-(defn layout [body]
+(defpartial layout [body]
   [:html 
    [:head
     [:meta {:charset "utf-8"}]
