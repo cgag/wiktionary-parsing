@@ -18,7 +18,7 @@
                  ;; cljs
                  ;;
                  [org.clojure/google-closure-library-third-party "0.0-2029-2"]
-                 [cljs-http "0.0.5"]
+                 [io.curtis/cljs-http "0.0.7-SNAPSHOT"]
                  [domina "1.0.1"]
                  [crate "0.2.4"] 
                  [com.keminglabs/c2 "0.2.3"]]

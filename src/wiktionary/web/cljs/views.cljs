@@ -182,7 +182,7 @@
                           (init-word-info (value (by-id "word-info"))))) )
 
 (defn ^:export main []
-  (append! (sel ".body-container") (home))
+  (init-home)
   (init-nav-listeners! nav-chan))
 
 (defn router [nav-chan]
