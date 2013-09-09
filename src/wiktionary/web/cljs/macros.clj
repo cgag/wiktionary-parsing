@@ -9,3 +9,7 @@
        [:title "Title"]]
       [:body
        ~@body]]))
+
+(defmacro forever [& body]
+  `(while true
+     ~@body))

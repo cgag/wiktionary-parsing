@@ -15,13 +15,9 @@
   (:use [domina :only [append! destroy-children! by-class by-id value text]])
   (:require-macros [crate.def-macros :refer [defpartial]]
                    [cljs.core.async.macros :refer [go]]
-                   [wiktionary.web.cljs.macros :refer [defview]]))
+                   [wiktionary.web.cljs.macros :refer [defview forever]]))
 
 (repl/connect "http://localhost:9000/repl")
-
-(def nav
-  [:ul
-   [:li (link-to {:id "home-link"} "#" "home")]])
 
 ;; TODO: merge all the conjugations based on infinitive?
 (defn display-conjugation-info [conjugation-info]
@@ -71,9 +67,8 @@
         [:div (for [verb-entry verbs]
                 (display-verb verb-entry))]])]))
 
-(defview word-info-page [word-entry]
+(defpartial word-info-page [word-entry]
   [:div.container
-   nav
    (render-word-info word-entry)] )
 
 (defn word-info [word]
@@ -94,61 +89,23 @@
         m))
 
 ;What the fuck is going on with sort-map also why won't this work even without it?
-(defpartial render-frequencies [freq-map]
-  (let [width 500, bar-height 20
-        data freq-map
-        s (scale/linear :domain [0 (apply max (vals data))]
-                        :range [0 width])]
-    [:div#bars
-     (unify data (fn [[label val]]
-                   [:div {:style (str "height: " bar-height
-                                      "; width: " (/ (s val) 1.0) "px"
-                                      "; background-color: blue;")}
-                    [:span {:style (str "color: " "white;")} label]]))]))
+;(defpartial render-frequencies [freq-map]
+  ;(let [width 500, bar-height 20
+        ;data freq-map
+        ;s (scale/linear :domain [0 (apply max (vals data))]
+                        ;:range [0 width])]
+    ;[:div#bars
+     ;(unify data (fn [[label val]]
+                   ;[:div {:style (str "height: " bar-height
+                                      ;"; width: " (/ (s val) 1.0) "px"
+                                      ;"; background-color: blue;")}
+                    ;[:span {:style (str "color: " "white;")} label]]))]))
 
-(comment (unify data (fn [[label val]]
-                       [:div {:style (str "height: " bar-height
-                                          "; width: " (/ (s val) 1.0) "px"
-                                          "; background-color: blue;")}
-                        [:span {:style (str "color: " "white;")} label]])))
-
-(def nav-chan (chan))
-
-(defpartial layout [body]
-  [:html 
-   [:head
-    [:meta {:charset "utf-8"}]
-    [:title "Title"]]
-   [:body
-    [:div.layout-container
-     [:div.nav nav]
-     ;; macro body
-     [:div.body-container body]
-     ]
-    ;; set up js
-    ]])
-
-;; ===>
-;(defpartial home [nav-chan]
-  ;[:html 
-   ;[:head
-    ;[:meta {:charset "utf-8"}]
-    ;[:title "Title"]]
-   ;[:body
-    ;[:div.container
-     ;nav
-
-     ;;; macro body
-
-     ;[:div.home
-      ;[:div.info-form info-form]
-      ;[:hr]
-      ;[:div.frequencies-form frequencies-form]]]
-
-     ;;; set up js
-
-    ;]])
-;;;
+;(comment (unify data (fn [[label val]]
+                       ;[:div {:style (str "height: " bar-height
+                                          ;"; width: " (/ (s val) 1.0) "px"
+                                          ;"; background-color: blue;")}
+                        ;[:span {:style (str "color: " "white;")} label]])))
 
 
 (defn init-nav-listeners! [nav-chan]
@@ -162,18 +119,15 @@
   (go 
     (let [entry (<! (word-info word))]
       (destroy-children! (sel ".body-container"))
-      (append! (sel ".body-container") (word-info-page entry))
-      (init-nav-listeners! nav-chan))))
+      (append! (sel ".body-container") (word-info-page entry)))))
 
-(defn ^:export init-word-frequencies [text]
-  (go
-    (let [freqs (<! (lemma-frequencies text))]
-      (append! (sel ".body-container") (str "<div>" freqs "</div>"))
-      (append! (sel ".body-container") (render-frequencies freqs)))))
+;(defn ^:export init-word-frequencies [text]
+;(go
+;(let [freqs (<! (lemma-frequencies text))]
+;(append! (sel ".body-container") (str "<div>" freqs "</div>"))
+;(append! (sel ".body-container") (render-frequencies freqs)))))
 
 ;; TODO: whyd oesn't by-class word?
-;; NOTE: unecessary go block, juts for consistency, probably going to try ot 
-;; make a macro out of this pattern
 (defn ^:export init-home []
   (destroy-children! (sel ".body-container"))
   (append! (sel ".body-container") (home))
@@ -181,16 +135,15 @@
                  :click (fn [e]
                           (init-word-info (value (by-id "word-info"))))) )
 
-(defn ^:export main []
-  (init-home)
-  (init-nav-listeners! nav-chan))
 
 (defn router [nav-chan]
-  (go
-    (let [nav-event (<! nav-chan)]
-      (condp = nav-event
-        :home (do
-                (js/alert "got home event")
-                (init-home))))))
+  (go (forever (let [nav-event (<! nav-chan)]
+                 (condp = nav-event
+                   :home  (init-home)
+                   :about (init-about))))))
 
-(router nav-chan)
+(defn ^:export main []
+  (let [nav-chan (chan)] 
+    (init-home)
+    (init-nav-listeners! nav-chan)
+    (router nav-chan)))

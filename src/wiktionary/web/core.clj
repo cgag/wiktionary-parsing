@@ -10,17 +10,11 @@
   (GET "/" [] (views/home))
   (GET "/edn/word-info" {{word :word} :params} 
        (views/edn-word-info word))
-  (GET "/word-info/:word" [word] 
-       (views/word-info word))
-  (GET "/word-info" {{word :word} :params}
-       (views/word-info word))
   (GET "/frequencies" [] (resp/redirect "/"))
-  (POST "/frequencies" {{text :text} :params} 
-        (views/word-frequencies text))
   (POST "/edn/frequencies" {{text :text} :params} 
         (views/edn-word-frequencies text))
   (route/resources "/")
-  (route/not-found "buts found"))
+  (route/not-found "not found"))
 
 
 (def app (handler/site app-routes))

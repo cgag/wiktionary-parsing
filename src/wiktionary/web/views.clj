@@ -25,30 +25,26 @@
         [:div.layout-container
          nav
          [:div.body-container
-          ~@body]]])))
+          ~@body]]
+        (include-js "/js/main.js")
+        [:script "wiktionary.web.cljs.views.main();"]])))
 
 (defmacro defpartial [name param-vec & body]
   `(defn ~name ~param-vec
      (html ~@body)))
 
-(defpartial init-js [init-str]
-  (include-js "/js/main.js")
-  [:script init-str])
-
-(defview home []
-  "whatever man"
-  (init-js "wiktionary.web.cljs.views.main();"))
+(defview home [] "shiiit")
 
 ;; TODO: this and word-freqs are dumb, just override behavior of submitting
 ;; forms
-(defview word-info [word]
-  "in word info view"
-  (init-js (str "wiktionary.web.cljs.views.init_word_info(\"" word "\");")))
+;(defview word-info [word]
+;"in word info view"
+;(init-js (str "wiktionary.web.cljs.views.init_word_info(\"" word "\");")))
 
 ;; TODO: lmao this doesn't work if text has new lines
-(defview word-frequencies [text]
-  "in word-frequencies view"
-  (init-js (str "wiktionary.web.cljs.views.init_word_frequencies(\"" text "\");")))
+;(defview word-frequencies [text]
+;"in word-frequencies view"
+;(init-js (str "wiktionary.web.cljs.views.init_word_frequencies(\"" text "\");")))
 
 (defn edn-word-info [word]
   (pr-str (w/definition word)))
@@ -63,19 +59,19 @@
         m))
 
 ;(defview c2-test [freq-map]
-  ;(let [width 500, bar-height 20
-        ;data (sort-map freq-map)
-        ;s (scale/linear :domain [0 (apply max (vals data))]
-                        ;:range [0 width])]
-    ;[:div#bars
-     ;(unify data (fn [[label val]]
-                   ;[:div {:style (str "height: " bar-height
-                                      ;"; width: " (/ (s val) 1.0) "px"
-                                      ;"; background-color: blue;")}
-                    ;[:span {:style (str "color: " "white;")} label]]))]))
+;(let [width 500, bar-height 20
+;data (sort-map freq-map)
+;s (scale/linear :domain [0 (apply max (vals data))]
+;:range [0 width])]
+;[:div#bars
+;(unify data (fn [[label val]]
+;[:div {:style (str "height: " bar-height
+;"; width: " (/ (s val) 1.0) "px"
+;"; background-color: blue;")}
+;[:span {:style (str "color: " "white;")} label]]))]))
 
 
 ;(defview word-frequencies [text]
-  ;[:div.text 
-   ;(str (w/lemma-frequencies (w/words text)))
-   ;(c2-test (w/lemma-frequencies (w/words text)))])
+;[:div.text 
+;(str (w/lemma-frequencies (w/words text)))
+;(c2-test (w/lemma-frequencies (w/words text)))])
