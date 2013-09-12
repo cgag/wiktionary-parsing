@@ -11,7 +11,9 @@
 
 (def nav
   [:ul
-   [:li (link-to {:id "home-link"} "#" "home")]])
+   [:li (link-to {:id "home-link"} "#" "home")]
+   [:li (link-to {:id "about-link"} "#" "about")]
+   [:li (link-to {:id "contact-link"} "#" "contact")]])
 
 ;; TODO: probably some of this can be in functions instead
 ;; of in the macro

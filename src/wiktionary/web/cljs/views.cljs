@@ -53,6 +53,19 @@
    [:hr]
    [:div.frequencies-form frequencies-form]])
 
+(defpartial about []
+  [:div.about
+   [:p "Some language learning jazz. Some language learning jazz. 
+       Some language learning jazz. Some language learning jazz. 
+       Some language learning jazz. Some language learning jazz. 
+       Some language learning jazz. Some language learning jazz. 
+       Some language learning jazz. Some language learning jazz. 
+       Some language learning jazz. Some language learning jazz."]])
+
+(defpartial contact []
+  [:div.contact
+   (link-to "#" "this is the contact page")])
+
 (defpartial render-word-info [entry]
   (let [{:keys [lang word non-verbs verbs] :as info} entry]
     [:div.info 
@@ -90,36 +103,31 @@
 
 ;What the fuck is going on with sort-map also why won't this work even without it?
 ;(defpartial render-frequencies [freq-map]
-  ;(let [width 500, bar-height 20
-        ;data freq-map
-        ;s (scale/linear :domain [0 (apply max (vals data))]
-                        ;:range [0 width])]
-    ;[:div#bars
-     ;(unify data (fn [[label val]]
-                   ;[:div {:style (str "height: " bar-height
-                                      ;"; width: " (/ (s val) 1.0) "px"
-                                      ;"; background-color: blue;")}
-                    ;[:span {:style (str "color: " "white;")} label]]))]))
+;(let [width 500, bar-height 20
+;data freq-map
+;s (scale/linear :domain [0 (apply max (vals data))]
+;:range [0 width])]
+;[:div#bars
+;(unify data (fn [[label val]]
+;[:div {:style (str "height: " bar-height
+;"; width: " (/ (s val) 1.0) "px"
+;"; background-color: blue;")}
+;[:span {:style (str "color: " "white;")} label]]))]))
 
 ;(comment (unify data (fn [[label val]]
-                       ;[:div {:style (str "height: " bar-height
-                                          ;"; width: " (/ (s val) 1.0) "px"
-                                          ;"; background-color: blue;")}
-                        ;[:span {:style (str "color: " "white;")} label]])))
-
+;[:div {:style (str "height: " bar-height
+;"; width: " (/ (s val) 1.0) "px"
+;"; background-color: blue;")}
+;[:span {:style (str "color: " "white;")} label]])))
 
 (defn init-nav-listeners! [nav-chan]
-  (event/listen! (sel "#home-link")
-                 :click (fn [e] 
-                          (go (>! nav-chan :home)))))
-
-;; TODO: fancier routing
-;; TODO: pushstate for history
-(defn ^:export init-word-info [word]
-  (go 
-    (let [entry (<! (word-info word))]
-      (destroy-children! (sel ".body-container"))
-      (append! (sel ".body-container") (word-info-page entry)))))
+  (letfn [(nav-listener! [selector event]
+            (event/listen! (sel selector)
+                           :click (fn [e]
+                                    (go (>! nav-chan event)))))]
+    (nav-listener! "#home-link"    :home)
+    (nav-listener! "#about-link"   :about)
+    (nav-listener! "#contact-link" :contact)))
 
 ;(defn ^:export init-word-frequencies [text]
 ;(go
@@ -127,20 +135,37 @@
 ;(append! (sel ".body-container") (str "<div>" freqs "</div>"))
 ;(append! (sel ".body-container") (render-frequencies freqs)))))
 
+;; TODO: pushstate for history
+(defn init-word-info [word]
+  (go 
+    (let [entry (<! (word-info word))]
+      (destroy-children! (sel ".body-container"))
+      (append! (sel ".body-container") (word-info-page entry))))) 
+
 ;; TODO: whyd oesn't by-class word?
-(defn ^:export init-home []
+(defn init-home []
   (destroy-children! (sel ".body-container"))
   (append! (sel ".body-container") (home))
   (event/listen! (sel ".word-info-form button")
                  :click (fn [e]
-                          (init-word-info (value (by-id "word-info"))))) )
+                          (init-word-info (value (by-id "word-info"))))))
+
+(defn init-about []
+  (destroy-children! (sel ".body-container"))
+  (append! (sel ".body-container") (about)))
+
+(defn init-contact []
+  (destroy-children! (sel ".body-container"))
+  (append! (sel ".body-container") (contact)))
 
 
 (defn router [nav-chan]
   (go (forever (let [nav-event (<! nav-chan)]
                  (condp = nav-event
-                   :home  (init-home)
-                   :about (init-about))))))
+                   :home    (init-home)
+                   :about   (init-about)
+                   :contact (init-contact))))))
+
 
 (defn ^:export main []
   (let [nav-chan (chan)] 
