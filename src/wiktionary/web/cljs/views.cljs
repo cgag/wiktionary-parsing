@@ -9,13 +9,16 @@
     [c2.core :refer [unify]]
     [domina.css :refer [sel]]
     [domina.events :as event]
+    [shoreleave.browser.history :as h]
     [crate.core :as crate]
     [crate.form :as form]
     [crate.element :refer [link-to]])
   (:use [domina :only [append! destroy-children! by-class by-id value text]])
   (:require-macros [crate.def-macros :refer [defpartial]]
                    [cljs.core.async.macros :refer [go]]
-                   [wiktionary.web.cljs.macros :refer [defview forever]]))
+                   [wiktionary.web.cljs.macros :refer [defview 
+                                                       forever
+                                                       def-js-page]]))
 
 (repl/connect "http://localhost:9000/repl")
 
@@ -47,13 +50,13 @@
 
 (declare layout)
 
-(defpartial home []
+(defpartial home-body []
   [:div.home
    [:div.info-form info-form]
    [:hr]
    [:div.frequencies-form frequencies-form]])
 
-(defpartial about []
+(defpartial about-body []
   [:div.about
    [:p "Some language learning jazz. Some language learning jazz. 
        Some language learning jazz. Some language learning jazz. 
@@ -62,7 +65,7 @@
        Some language learning jazz. Some language learning jazz. 
        Some language learning jazz. Some language learning jazz."]])
 
-(defpartial contact []
+(defpartial contact-body []
   [:div.contact
    (link-to "#" "this is the contact page")])
 
@@ -94,40 +97,17 @@
     (read-string
       (:body (<! (http/post "/edn/frequencies" {:query-params {:text text}}))))))
 
-
-(defn sort-map [m]
-  (into (sorted-map-by (fn [key1 key2]
-                         (compare [(get m key2) key2]
-                                  [(get m key1) key1])))
-        m))
-
-;What the fuck is going on with sort-map also why won't this work even without it?
-;(defpartial render-frequencies [freq-map]
-;(let [width 500, bar-height 20
-;data freq-map
-;s (scale/linear :domain [0 (apply max (vals data))]
-;:range [0 width])]
-;[:div#bars
-;(unify data (fn [[label val]]
-;[:div {:style (str "height: " bar-height
-;"; width: " (/ (s val) 1.0) "px"
-;"; background-color: blue;")}
-;[:span {:style (str "color: " "white;")} label]]))]))
-
-;(comment (unify data (fn [[label val]]
-;[:div {:style (str "height: " bar-height
-;"; width: " (/ (s val) 1.0) "px"
-;"; background-color: blue;")}
-;[:span {:style (str "color: " "white;")} label]])))
-
 (defn init-nav-listeners! [nav-chan]
   (letfn [(nav-listener! [selector event]
             (event/listen! (sel selector)
                            :click (fn [e]
+                                    (event/prevent-default e)
                                     (go (>! nav-chan event)))))]
     (nav-listener! "#home-link"    :home)
     (nav-listener! "#about-link"   :about)
-    (nav-listener! "#contact-link" :contact)))
+    (nav-listener! "#contact-link" :contact)
+    (h/navigate-callback (fn [m] 
+                           (go (>! nav-chan (:token m)))))))
 
 ;(defn ^:export init-word-frequencies [text]
 ;(go
@@ -142,33 +122,29 @@
       (destroy-children! (sel ".body-container"))
       (append! (sel ".body-container") (word-info-page entry))))) 
 
-;; TODO: whyd oesn't by-class word?
-(defn init-home []
-  (destroy-children! (sel ".body-container"))
-  (append! (sel ".body-container") (home))
+(def-js-page init-home "home" (home-body)
   (event/listen! (sel ".word-info-form button")
                  :click (fn [e]
                           (init-word-info (value (by-id "word-info"))))))
 
-(defn init-about []
-  (destroy-children! (sel ".body-container"))
-  (append! (sel ".body-container") (about)))
-
-(defn init-contact []
-  (destroy-children! (sel ".body-container"))
-  (append! (sel ".body-container") (contact)))
-
+(def-js-page init-about "about" (about-body))
+(def-js-page init-contact "contact" (contact-body))
 
 (defn router [nav-chan]
   (go (forever (let [nav-event (<! nav-chan)]
                  (condp = nav-event
                    :home    (init-home)
                    :about   (init-about)
-                   :contact (init-contact))))))
+                   :contact (init-contact)
+                   :else    (init-home))))))
 
+(defn set-initial-state! [nav-chan hist-token]
+  (go (>! nav-chan (if (s/blank? hist-token)
+                     :home
+                     (keyword hist-token)))))
 
 (defn ^:export main []
   (let [nav-chan (chan)] 
-    (init-home)
-    (init-nav-listeners! nav-chan)
-    (router nav-chan)))
+    (router nav-chan)
+    (set-initial-state! nav-chan (h/get-token h/history))
+    (init-nav-listeners! nav-chan)))

@@ -13,3 +13,11 @@
 (defmacro forever [& body]
   `(while true
      ~@body))
+
+(defmacro def-js-page [page-name path body-partial & js-forms]
+  `(defn ~page-name []
+     (shoreleave.browser.history/set-token!
+       shoreleave.browser.history/history ~path)
+     (domina/destroy-children! (domina.css/sel ".body-container"))
+     (domina/append! (domina.css/sel ".body-container") ~body-partial)
+     ~@js-forms))
