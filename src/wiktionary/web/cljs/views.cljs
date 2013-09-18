@@ -90,26 +90,41 @@
 (defn word-info [word]
   (go 
     (read-string 
-      (:body (<! (http/get "/edn/word-info" {:query-params {:word word}}))))))
+      (:body (<! (http/get "/edn/word-info" 
+                           {:query-params {:word word}}))))))
 
 (defn lemma-frequencies [text]
   (go
     (read-string
-      (:body (<! (http/post "/edn/frequencies" {:query-params {:text text}}))))))
+      (:body (<! (http/post "/edn/frequencies" 
+                            {:query-params {:text text}}))))))
 
+(defn keyword->str
+  "turn a keyword into a string and keep the namespace"
+  [k]
+  (subs (str k) 1))
+
+
+;; Setting the history token causes a navigation event.
+;; Rather than placing anything into nav-chan directly from the links, we 
+;; instead just set the token and let the navigate-callback handle it.
 (defn init-nav-listeners! [nav-chan]
-  (letfn [(nav-listener! [selector event]
+  (letfn [(nav-listener! [selector token]
             (event/listen! (sel selector)
                            :click (fn [e]
                                     (event/prevent-default e)
-                                    (go (>! nav-chan event)))))]
-    (nav-listener! "#home-link"    :home)
-    (nav-listener! "#about-link"   :about)
-    (nav-listener! "#contact-link" :contact)
-    (h/navigate-callback (fn [m] 
-                           (go (>! nav-chan (:token m)))))))
+                                    (h/set-token! h/history token))))]
+    (nav-listener! "#home-link"    "home")
+    (nav-listener! "#about-link"   "about")
+    (nav-listener! "#contact-link" "contact")
+    (h/navigate-callback 
+      (fn [m] 
+        (go (>! nav-chan 
+                (let [[event & args] (s/split (keyword->str (:token m)) #"/")]
+                  (js/alert (str "nav-event: event: " event " args: " args))
+                  [(keyword event) args])))))))
 
-;(defn ^:export init-word-frequencies [text]
+;(defn init-word-frequencies [text]
 ;(go
 ;(let [freqs (<! (lemma-frequencies text))]
 ;(append! (sel ".body-container") (str "<div>" freqs "</div>"))
@@ -125,23 +140,34 @@
 (def-js-page init-home "home" (home-body)
   (event/listen! (sel ".word-info-form button")
                  :click (fn [e]
-                          (init-word-info (value (by-id "word-info"))))))
+                          (let [word (value (by-id "word-info"))] 
+                            (h/set-token! h/history (str "word-info/" word))
+                            ;(init-word-info word)
+                            ))))
 
 (def-js-page init-about "about" (about-body))
 (def-js-page init-contact "contact" (contact-body))
 
+;(def-js-page init-word-info "word-info" [word]
+;(go (let [entry (<! (word-info word))] 
+;(word-info-page word))))
+
+
 (defn router [nav-chan]
-  (go (forever (let [nav-event (<! nav-chan)]
+  (go (forever (let [[nav-event args] (<! nav-chan)]
+                 (js/alert (str "router: event: " nav-event " args: " args))
                  (condp = nav-event
                    :home    (init-home)
                    :about   (init-about)
                    :contact (init-contact)
+                   :word-info (apply init-word-info args)
                    :else    (init-home))))))
 
 (defn set-initial-state! [nav-chan hist-token]
   (go (>! nav-chan (if (s/blank? hist-token)
-                     :home
-                     (keyword hist-token)))))
+                     [:home]
+                     (let [[event & args] (s/split hist-token #"/")]
+                       (apply vector (keyword event) args))))))
 
 (defn ^:export main []
   (let [nav-chan (chan)] 
