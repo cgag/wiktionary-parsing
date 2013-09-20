@@ -69,6 +69,10 @@
   [:div.contact
    (link-to "#" "this is the contact page")])
 
+(defpartial render-frequencies [freq-map]
+  [:div.frequencies
+   (str freq-map)])
+
 (defpartial render-word-info [entry]
   (let [{:keys [lang word non-verbs verbs] :as info} entry]
     [:div.info 
@@ -105,6 +109,8 @@
   (subs (str k) 1))
 
 
+(def ignored-events #{:frequencies})
+
 ;; Setting the history token causes a navigation event.
 ;; Rather than placing anything into nav-chan directly from the links, we 
 ;; instead just set the token and let the navigate-callback handle it.
@@ -119,10 +125,10 @@
     (nav-listener! "#contact-link" "contact")
     (h/navigate-callback 
       (fn [m] 
-        (go (>! nav-chan 
-                (let [[event & args] (s/split (keyword->str (:token m)) #"/")]
-                  (js/alert (str "nav-event: event: " event " args: " args))
-                  [(keyword event) args])))))))
+        (let [[event & args] (s/split (keyword->str (:token m)) #"/")]
+          (js/alert (str "nav-event: event: " event " args: " args))
+          (when-not (ignored-events event)
+            (go (>! nav-chan [(keyword event) args]))))))))
 
 ;(defn init-word-frequencies [text]
 ;(go
@@ -137,13 +143,17 @@
       (destroy-children! (sel ".body-container"))
       (append! (sel ".body-container") (word-info-page entry))))) 
 
+;(defn init-fr)
+
 (def-js-page init-home "home" (home-body)
   (event/listen! (sel ".word-info-form button")
                  :click (fn [e]
                           (let [word (value (by-id "word-info"))] 
-                            (h/set-token! h/history (str "word-info/" word))
-                            ;(init-word-info word)
-                            ))))
+                            (h/set-token! h/history (str "word-info/" word)))))
+  (event/listen! (sel ".frequencies-form button") 
+                 :click (fn [e]
+                          (let [text (value (by-id "text"))]
+                            (h/set-token! h/history "frequencies")))))
 
 (def-js-page init-about "about" (about-body))
 (def-js-page init-contact "contact" (contact-body))
@@ -161,6 +171,7 @@
                    :about   (init-about)
                    :contact (init-contact)
                    :word-info (apply init-word-info args)
+                   :frequencies (apply init-frequencies args)
                    :else    (init-home))))))
 
 (defn set-initial-state! [nav-chan hist-token]
