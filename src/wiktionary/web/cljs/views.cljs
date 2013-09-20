@@ -38,7 +38,15 @@
                                       (go (>! nav-chan [(keyword event) args]))))))]
     (nav-listener! "#home-link"    :home)
     (nav-listener! "#about-link"   :about)
-    (nav-listener! "#contact-link" :contact)))
+    (nav-listener! "#contact-link" :contact)
+    (h/navigate-callback 
+      (fn [m] 
+        (when (:navigation? m) 
+          (js/alert (str m)))))))
+
+(comment (let [[event & args] (s/split (keyword->str (:token m)) #"/")]
+           (js/alert (str "nav-event: event: " event " args: " args))
+           (go (>! nav-chan [(keyword event) args]))))
 
 ;; TODO: Definitely need the callback.  Just use it for back and foward events?
 ;(comment (h/navigate-callback 
@@ -57,8 +65,9 @@
 (def-js-page init-home "home" (p/home-body)
   (event/listen! (sel ".word-info-form button")
                  :click (fn [e]
-                          (let [word (value (by-id "word-info"))] 
-                            (h/set-token! h/history (str "word-info/" word)))))
+                          (let [word (value (by-id "word-info"))]
+                            (h/set-token! h/history (str "word-info/" word))
+                            (init-word-info word))))
   (event/listen! (sel ".frequencies-form button") 
                  :click (fn [e]
                           (let [text (value (by-id "text"))]
@@ -68,7 +77,7 @@
 (def-js-page init-contact "contact" (p/contact-body))
 
 (defn router [nav-chan]
-  (go (forever (let [[nav-event args] (<! nav-chan)]
+  (go (forever (let [[nav-event & args] (<! nav-chan)]
                  (js/alert (str "router: event: " nav-event " args: " args))
                  (condp = nav-event
                    :home    (init-home)
