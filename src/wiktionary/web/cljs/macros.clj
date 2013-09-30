@@ -19,5 +19,5 @@
      (shoreleave.browser.history/set-token!
        shoreleave.browser.history/history ~path)
      (domina/destroy-children! (domina.css/sel ".body-container"))
-     (domina/append! (domina.css/sel ".body-container") ~body-partial)
+     (domina/append! (domina.css/sel ".body-container") (~body-partial))
      ~@js-forms))

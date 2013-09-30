@@ -22,6 +22,7 @@
                  [shoreleave "0.3.0"]
                  [domina "1.0.1"]
                  [crate "0.2.4"] 
+                 [net.drib/strokes "0.5.1"]
                  [com.keminglabs/c2 "0.2.3"]]
   :repositories {"sonatype-oss-public" "https://oss.sonatype.org/content/groups/public/"}
   :plugins [[lein-cljsbuild "0.3.2"]]

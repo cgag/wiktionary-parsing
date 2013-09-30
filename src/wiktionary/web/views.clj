@@ -28,6 +28,7 @@
          nav
          [:div.body-container
           ~@body]]
+        (include-js "http://d3js.org/d3.v3.min.js")
         (include-js "/js/main.js")
         [:script "wiktionary.web.cljs.views.main();"]])))
 

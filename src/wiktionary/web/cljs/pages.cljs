@@ -30,15 +30,15 @@
   (if-let [conjugation-info (:conjugation verb-entry)] 
     (display-conjugation-info conjugation-info)
     [:li (:definition verb-entry)])) 
- 
 
-(defpartial home-body []
+
+(defpartial home []
   [:div.home
    [:div.info-form info-form]
    [:hr]
    [:div.frequencies-form frequencies-form]])
 
-(defpartial about-body []
+(defpartial about []
   [:div.about
    [:p "Some language learning jazz. Some language learning jazz. 
        Some language learning jazz. Some language learning jazz. 
@@ -47,9 +47,9 @@
        Some language learning jazz. Some language learning jazz. 
        Some language learning jazz. Some language learning jazz."]])
 
-(defpartial contact-body []
+(defpartial contact []
   [:div.contact
-   (link-to "#" "this is the contact page")])
+   (link-to "#" "test is the contact page")])
 
 (defpartial render-frequencies [freq-map]
   [:div.frequencies
@@ -69,6 +69,10 @@
         [:div (for [verb-entry verbs]
                 (display-verb verb-entry))]])]))
 
-(defpartial word-info-page [word-entry]
+(defpartial word-info [word-entry]
   [:div.container
    (render-word-info word-entry)] ) 
+
+(defpartial freqs [freq-map]
+  [:div.container
+   (render-frequencies freq-map)])

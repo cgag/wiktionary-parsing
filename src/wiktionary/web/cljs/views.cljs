@@ -1,10 +1,12 @@
 (ns wiktionary.web.cljs.views
   (:require 
+    [strokes :refer  [d3]]
     [clojure.browser.repl :as repl]
     [clojure.string :as s] 
     [cljs.core.async :refer [chan >! <! close!]]
     [c2.scale :as scale]
     [c2.core :refer [unify]]
+    [domina :as d]
     [domina.css :refer [sel]]
     [domina.events :as event]
     [shoreleave.browser.history :as h]
@@ -20,6 +22,12 @@
 
 (repl/connect "http://localhost:9000/repl")
 
+(defn set-location! [s]
+  (h/set-token! h/history s))
+
+(defn get-location []
+  (h/get-token h/history))
+
 (defn keyword->str
   "turn a keyword into a string and keep the namespace"
   [k]
@@ -32,7 +40,6 @@
   (letfn [(nav-listener! [selector token]
             (event/listen! (sel selector)
                            :click (fn [e]
-                                    (js/alert "click")
                                     (event/prevent-default e)
                                     (let [[event & args] (s/split (keyword->str token) #"/")]
                                       (go (>! nav-chan [(keyword event) args]))))))]
@@ -42,50 +49,51 @@
     (h/navigate-callback 
       (fn [m] 
         (when (:navigation? m) 
-          (js/alert (str m)))))))
+          (let [[event & args] (s/split (keyword->str (:token m)) #"/")]
+            ;(js/alert (str "nav-event: event: " event " args: " args))
+            (go (>! nav-chan (apply vector (keyword event) args)))))))))
 
-(comment (let [[event & args] (s/split (keyword->str (:token m)) #"/")]
-           (js/alert (str "nav-event: event: " event " args: " args))
-           (go (>! nav-chan [(keyword event) args]))))
-
-;; TODO: Definitely need the callback.  Just use it for back and foward events?
-;(comment (h/navigate-callback 
-;(fn [m] 
-;(let [[event & args] (s/split (keyword->str (:token m)) #"/")]
-;(js/alert (str "nav-event: event: " event " args: " args))
-;(go (>! nav-chan [(keyword event) args]))))))
-
-;; TODO: pushstate for history
 (defn init-word-info [word]
   (go 
     (let [entry (<! (client/word-info word))]
+      (set-location! (str "word-info/" word))
       (destroy-children! (sel ".body-container"))
-      (append! (sel ".body-container") (p/word-info-page entry))))) 
+      (append! (sel ".body-container") (p/word-info entry))))) 
 
-(def-js-page init-home "home" (p/home-body)
+(defn init-frequencies [text]
+  (go 
+    (let [freqs (<! (client/lemma-frequencies text))]
+      (set-location! "frequencies")
+      (destroy-children! (sel ".body-container"))
+      (js/alert freqs)
+      (append! (sel ".body-container") (p/freqs freqs)))))
+
+(defn init-home [nav-chan]
+  (set-location! "home")
+  (d/destroy-children! (sel ".body-container"))
+  (d/append! (sel ".body-container") (p/home))
   (event/listen! (sel ".word-info-form button")
                  :click (fn [e]
                           (let [word (value (by-id "word-info"))]
-                            (h/set-token! h/history (str "word-info/" word))
-                            (init-word-info word))))
+                            (go (>! nav-chan [:word-info word])))))
   (event/listen! (sel ".frequencies-form button") 
                  :click (fn [e]
                           (let [text (value (by-id "text"))]
-                            (h/set-token! h/history "frequencies")))))
+                            (go (>! nav-chan [:frequencies text]))))))
 
-(def-js-page init-about   "about"   (p/about-body))
-(def-js-page init-contact "contact" (p/contact-body))
+(def-js-page init-about   "about"   p/about)
+(def-js-page init-contact "contact" p/contact)
 
 (defn router [nav-chan]
   (go (forever (let [[nav-event & args] (<! nav-chan)]
-                 (js/alert (str "router: event: " nav-event " args: " args))
+                 ;(js/alert (str "router: event: " nav-event " args: " args))
                  (condp = nav-event
-                   :home    (init-home)
+                   :home    (init-home nav-chan)
                    :about   (init-about)
                    :contact (init-contact)
-                   :word-info   (apply init-word-info args)
-                   ;:frequencies (apply init-frequencies args)
-                   :else    (init-home))))))
+                   :word-info   (apply init-word-info   args)
+                   :frequencies (apply init-frequencies args)
+                   :else    (init-home nav-chan))))))
 
 (defn set-initial-state! [nav-chan hist-token]
   (go (>! nav-chan (if (s/blank? hist-token)
@@ -96,5 +104,5 @@
 (defn ^:export main []
   (let [nav-chan (chan)] 
     (router nav-chan)
-    (set-initial-state! nav-chan (h/get-token h/history))
+    (set-initial-state! nav-chan (get-location))
     (init-nav-listeners! nav-chan)))
