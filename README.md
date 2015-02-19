@@ -1,13 +1,17 @@
-# wiktionary
+A parser for wiktionary spanish definition dumps.  Parses definitions
+and the meta-data about the words such as tense, mood, and lemma.
 
-A Clojure library designed to ... well, that part is up to you.
+Example:
 
-## Usage
+It parses lines like:
+Spanish	comerán	Verb	# {{es-verb form of|person=third-person|number=plural|tense=future|mood=indicative|ending=er|comer}}
 
-FIXME
 
-## License
+into structures like:
 
-Copyright © 2013 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+{:word comerán
+ :tense "future"
+ :lemma "comer"
+ :ending :er
+ :mood :indicative
+ ....}
